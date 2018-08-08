@@ -44,14 +44,17 @@
 
  */
 
-template<typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
-class RollingQuadTree: public QuadTree<LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
+template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
+class RollingQuadTree: public QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
     int mMaxDepth = 10;
-
-
 public:
+
+    //TODO make address depth agnostic
+    //TODO allow LEAF data to represent more then one pixel
+    //TODO TEST at compile time the check that the leaf can represent the cell size
+
     /// Perfect tree with every prune being possible
-    RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(1024, 1024, split)
+    RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(1024, 1024, split)
     {
         //mMaxDepth = MAX_DEPTH;
         BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< mMaxDepth;
@@ -65,12 +68,13 @@ public:
     }
 
     RollingQuadTree(const cv::Mat & im, const SPLIT_POLICY_TYPE& split):
-            QuadTree<LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(im.cols, im.rows, split)
+            QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(im.cols, im.rows, split)
     {
         //mMaxDepth = MAX_DEPTH;
         BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< mMaxDepth;
         for (int y = 0; y < im.rows; y++) {
             for (int x = 0; x < im.cols; x++) {
+                // TODO offload cell eval to the leaf, allowing parsing to be depth agnostic
                 auto a = this->encodeAddress(x, y, mMaxDepth);
                 auto depth = im.at<ushort>(y, x);
                 addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
@@ -78,7 +82,7 @@ public:
         }
     }
 
-    void addLeafThenPrune(NodeAddress a, const LEAF_DATA_TYPE& leafData){
+    void addLeafThenPrune(ADDRESS_TYPE a, const LEAF_DATA_TYPE& leafData){
         // add new cell to tree
         this->addLeaf(a, leafData);
         auto pa = parentAddress(a);

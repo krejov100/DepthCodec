@@ -10,14 +10,14 @@
 #include <map>
 #include <bitset>
 
-template<typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
+template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class QuadTree : private SPLIT_POLICY_TYPE {
     size_t mWidth;
     size_t mHeight;
     size_t mImageWidth;
     size_t mImageHeight;
 
-    typedef typename std::map<NodeAddress, LEAF_DATA_TYPE>::iterator Node;
+    typedef typename std::map<ADDRESS_TYPE, LEAF_DATA_TYPE>::iterator Node;
 
     void prune(const LEAF_DATA_TYPE &parentData, Node tl, Node tr, Node bl, Node br) {
         auto pa = parentAddress(tl->first);
@@ -31,7 +31,7 @@ class QuadTree : private SPLIT_POLICY_TYPE {
     using SPLIT_POLICY_TYPE::shouldPrune;
 
 protected:
-    std::map<NodeAddress, LEAF_DATA_TYPE> tree;
+    std::map<ADDRESS_TYPE, LEAF_DATA_TYPE> tree;
 
 public:
     QuadTree(size_t width, size_t height , const SPLIT_POLICY_TYPE& split):
@@ -46,24 +46,23 @@ public:
         return tree.size() * sizeof(LEAF_DATA_TYPE);
     }
 
-    NodeAddress encodeAddress(size_t x, size_t y, size_t l) const{
-        return encodeAddressRecurse(x,y, this->getWidth()/2, this->getHeight()/2, l);
+    ADDRESS_TYPE encodeAddress(size_t x, size_t y, size_t l) const{
+        return encodeAddressRecurse<NodeAddress32bit>(x,y, this->getWidth()/2, this->getHeight()/2, l);
     }
 
-    std::tuple<size_t, size_t, size_t, size_t> decodeAddress(NodeAddress a) const{
+    std::tuple<size_t, size_t, size_t, size_t> decodeAddress(ADDRESS_TYPE a) const{
         return decodeAddressRecurse(a, 0, 0, this->getWidth(), this->getHeight());
     }
 
-    void addLeaf(NodeAddress address, const LEAF_DATA_TYPE& leafData){
+    void addLeaf(ADDRESS_TYPE address, const LEAF_DATA_TYPE& leafData){
         //BOOST_ASSERT_MSG(tree.find(address) == tree.end(), "this should be the first time the tree sees this address");
         tree[address] = leafData;
     }
 
-
     // check if the child branches of the tree can be pruned, if so prune.
-    bool evaluteForPruning(NodeAddress address){
+    bool evaluteForPruning(ADDRESS_TYPE address){
         // first checks if there are four siblings to given address.
-        NodeAddress pa = parentAddress(address);
+        ADDRESS_TYPE pa = parentAddress(address);
         Node tl = tree.find(topLeft(pa));
         Node tr = tree.find(topRight(pa));
         Node bl = tree.find(bottomLeft(pa));
