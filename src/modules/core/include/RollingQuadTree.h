@@ -53,20 +53,6 @@ public:
     //TODO allow LEAF data to represent more then one pixel
     //TODO TEST at compile time the check that the leaf can represent the cell size
 
-    /// Perfect tree with every prune being possible
-    RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(1024, 1024, split)
-    {
-        //mMaxDepth = MAX_DEPTH;
-        BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< mMaxDepth;
-
-        for (int y = 0; y < this->getHeight(); y++) {
-            for (int x = 0; x < this->getWidth(); x++) {
-                auto a = this->encodeAddress(x, y, 10);
-                addLeafThenPrune(a, LEAF_DATA_TYPE(1));
-            }
-        }
-    }
-
     RollingQuadTree(const cv::Mat & im, const SPLIT_POLICY_TYPE& split):
             QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(im.cols, im.rows, split)
     {

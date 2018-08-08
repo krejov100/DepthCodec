@@ -12,8 +12,8 @@
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class QuadTree : private SPLIT_POLICY_TYPE {
-    size_t mWidth;
-    size_t mHeight;
+    //size_t mWidth;
+    //size_t mHeight;
     size_t mImageWidth;
     size_t mImageHeight;
 
@@ -36,8 +36,8 @@ protected:
 public:
     QuadTree(size_t width, size_t height , const SPLIT_POLICY_TYPE& split):
             SPLIT_POLICY_TYPE(split),
-            mWidth(upperPowerOfTwo(width)),
-            mHeight(upperPowerOfTwo(height)),
+            //mWidth(upperPowerOfTwo(width)),
+            //mHeight(upperPowerOfTwo(height)),
             mImageWidth(width),
             mImageHeight(height)
     {}
@@ -47,11 +47,11 @@ public:
     }
 
     ADDRESS_TYPE encodeAddress(size_t x, size_t y, size_t l) const{
-        return encodeAddressRecurse<NodeAddress32bit>(x,y, this->getWidth()/2, this->getHeight()/2, l);
+        return encodeAddressRecurse<NodeAddress32bit>(x,y, maxDimensionLength<ADDRESS_TYPE>()/2, maxDimensionLength<ADDRESS_TYPE>()/2, l);
     }
 
     std::tuple<size_t, size_t, size_t, size_t> decodeAddress(ADDRESS_TYPE a) const{
-        return decodeAddressRecurse(a, 0, 0, this->getWidth(), this->getHeight());
+        return decodeAddressRecurse(a, 0, 0, maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
     }
 
     void addLeaf(ADDRESS_TYPE address, const LEAF_DATA_TYPE& leafData){
@@ -80,8 +80,8 @@ public:
         return false;
     }
 
-    int getWidth() const {return mWidth;}
-    int getHeight() const {return mHeight;}
+    //int getWidth() const {return mWidth;}
+    //int getHeight() const {return mHeight;}
 
     cv::Mat decode() const {
         cv::Mat grayImage(mImageHeight, mImageWidth, CV_16UC1, cv::Scalar(0));

@@ -81,19 +81,10 @@ public:
     unsigned short decodedValue(){return max;};
 };
 
-BOOST_AUTO_TEST_CASE(TestTreeBuild){
-    NodeAddress32bit address = 0b000100;
-    auto pa = parentAddress(address);
-    BOOST_TEST(pa == 0b000);
-
-    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(4));
-}
-
 BOOST_AUTO_TEST_CASE(TestEncodeAddressRecurse) {
     auto a = encodeAddressRecurse<NodeAddress32bit>(3, 2, 4/2, 4/2, 2);
     printAddress(a);
     BOOST_TEST(a == 0b101111);
-
 
     auto b = encodeAddressRecurse<NodeAddress32bit>(199, 199, 200/2, 200/2, 6);
     printAddress(b);
