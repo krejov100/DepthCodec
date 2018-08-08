@@ -2,28 +2,49 @@
 #example slide 24
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
+message(STATUS BOOST_ROOT ${BOOST_ROOT})
+find_package (Boost 1.67.0 REQUIRED log)
+message(STATUS OpenCV_DIR ${OpenCV_DIR})
+find_package (OpenCV 3.4.1 REQUIRED)
+
+message(STATUS ${_opencv_args})
+
 add_library(Core
+		src/CodecEvalFramework.cpp
+		src/NamedTimer.cpp
     )
-target_include_directories(Core 
-	PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-	PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-	PRIVATE ${Boost_INCLUDE_DIR}
+
+target_include_directories(Core
+		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-target_link_libraries(Core 
-        PRIVATE ${Boost_LIBRARIES}
+target_link_libraries(Core
+		PUBLIC ${Boost_LIBRARIES}
+		PUBLIC ${OpenCV_LIBS}
 )
-
 
 install(TARGETS Core EXPORT CoreTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-    )
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+		RUNTIME DESTINATION bin
+		INCLUDES DESTINATION include
+		)
 
 install(EXPORT CoreTargets
-    FILE CoreTargets.cmake
-    NAMESPACE Syn::
-    DESTINATION lib/cmake/Core
-    )
+		FILE CoreTargets.cmake
+		DESTINATION lib/cmake/Core
+		)
+
+add_executable(TestCore test/TestCore.cpp)
+
+target_include_directories(TestCore
+		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		PRIVATE Core
+		)
+target_link_libraries(TestCore
+		PRIVATE Core
+		)
+
+add_test(TestCore TestCore)
