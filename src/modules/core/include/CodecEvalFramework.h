@@ -8,13 +8,12 @@
 #include <vector>
 #include "NamedTimer.h"
 #include "opencv2/opencv.hpp"
+#include "CompressedData.h"
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
 
 #endif //CAPTURE_TRIANGULATION_COMPRESSION_H
-
-using CompressedData = typename std::vector<unsigned char>;
 
 /// template to IMAGE_TYPE with concept of image
 double MSE(const cv::Mat& original, const cv::Mat& transformed);
@@ -34,15 +33,15 @@ public:
     void printPerformance(std::ostream& ostream) const;
 };
 
-template<typename DATA_TYPE, typename CODEC_POLICY>
-class CodecEvalFramework: private CODEC_POLICY{
-    using CODEC_POLICY::compress;
-    using CODEC_POLICY::decompress;
-
+// The CODEC_POLICY is templated as it may be depth based, requiring DATA_TYPE to be cv::Mat
+// if its pointcloud based then it needs to be pcl::Pointcloud or open3d::Pointcloud
+template<typename DATA_TYPE, typename CODEC_PTR_TYPE>
+class CodecEvalFramework{
     std::vector<CompressionMetric> results;
+    CODEC_PTR_TYPE* mCodec;
 public:
 
-    CodecEvalFramework(){};
+    CodecEvalFramework(CODEC_PTR_TYPE* codec):mCodec(codec){};
 
     CompressionMetric evaluateCodecOnExample(const DATA_TYPE& example, bool showArtifacts=true) const
     {
@@ -51,7 +50,7 @@ public:
 
         /// Evaluate Compression
         rslt.compressionTimer = NamedTimer("Compression");
-        CompressedData compressedData = compress(example);
+        CompressedData compressedData = mCodec->compress(example);
         rslt.compressionTimer.endTimer();
 
         /// Evaluate CompressedData
@@ -60,7 +59,7 @@ public:
         /// Evaluate decompression
         rslt.decompressionTimer = NamedTimer("Decompression");
         DATA_TYPE decompressed;
-        decompress(compressedData, decompressed);
+        mCodec->decompress(compressedData, decompressed);
         rslt.decompressionTimer.endTimer();
 
         /// Evaluate lossyness

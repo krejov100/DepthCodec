@@ -1,10 +1,13 @@
 #define BOOST_TEST_MODULE TestCore
 #include <boost/test/included/unit_test.hpp>
 #include <boost/log/trivial.hpp>
+#include <CompressedData.h>
+#include <DepthCodecFactory.h>
 #include "opencv2/opencv.hpp"
-#include "NodeAddress.h"
-#include "RollingQuadTree.h"
 #include "CodecEvalFramework.h"
+#include "NodeAddress.h"
+#include "QuadTreeTypes.h"
+
 
 BOOST_AUTO_TEST_CASE(TestTest){
     std::cout << "Using Opencv "
@@ -47,53 +50,10 @@ BOOST_AUTO_TEST_CASE(TestQuadTreeSiblings) {
 }
 
 
-class AbsDiffPolicy{
-    short mThresh;
-protected:
-    template<typename LEAF_DATA_TYPE>
-    bool shouldPrune(LEAF_DATA_TYPE leafData){
-        //if(leafData.min == 0)
-        //    return true;
-        return abs(leafData.min-leafData.max) <= mThresh;
-    }
-public:
-    AbsDiffPolicy(short thresh):mThresh(thresh){}
-};
-
-
-class MinMax{
-public:
-    unsigned short min;
-    unsigned short max;
-
-    MinMax(){};
-
-    MinMax(unsigned short depth){
-        min = depth;
-        max = depth;
-    }
-
-    MinMax(MinMax tl, MinMax tr, MinMax bl, MinMax br) {
-        min = std::min({tl.min, tr.min, bl.min, br.min});
-        max = std::max({tl.max, tr.max, bl.max, br.max});
-    }
-
-    unsigned short decodedValue(){return max;};
-};
-
-BOOST_AUTO_TEST_CASE(TestTreeBuild){
-    NodeAddress32bit address = 0b000100;
-    auto pa = parentAddress(address);
-    BOOST_TEST(pa == 0b000);
-
-    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(4));
-}
-
 BOOST_AUTO_TEST_CASE(TestEncodeAddressRecurse) {
     auto a = encodeAddressRecurse<NodeAddress32bit>(3, 2, 4/2, 4/2, 2);
     printAddress(a);
     BOOST_TEST(a == 0b101111);
-
 
     auto b = encodeAddressRecurse<NodeAddress32bit>(199, 199, 200/2, 200/2, 6);
     printAddress(b);
@@ -159,9 +119,11 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
 
-    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(shortMat, AbsDiffPolicy(30 * (65536/255)));
+    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
+    t.parseImage(shortMat);
 
-    auto decompressed = t.decode();
+    cv::Mat decompressed(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
+    t.reconstructImage(decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
     std::vector<uchar> decompressedVec(decompressed.datastart,  decompressed.dataend);
@@ -174,9 +136,10 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     cv::waitKey(0);
 }
 
-class MockLossyhCodec{
+class MockLossyCodec{
     mutable cv::Mat original;
-protected:
+public:
+    MockLossyCodec(){};
 
     CompressedData compress(const cv::Mat& data) const {
         original = data;
@@ -184,15 +147,40 @@ protected:
         return CompressedData();
     };
 
-
     void decompress(const CompressedData& compressedData, cv::Mat& data)const {
         data = original;
     };
-
 };
 
-BOOST_AUTO_TEST_CASE(TestCompression){
-    CodecEvalFramework<cv::Mat, MockLossyhCodec> testFramework;
+BOOST_AUTO_TEST_CASE(TestCodecFramework){
+    auto codec = std::make_unique<MockLossyCodec>();
+    CodecEvalFramework<cv::Mat, MockLossyCodec> testFramework(codec.get());
     auto rslt = testFramework.evaluateCodecOnExample(cv::Mat(640, 480, CV_16UC1, cv::Scalar(0)), false);
     rslt.printPerformance(std::cout);
+}
+
+BOOST_AUTO_TEST_CASE(TestCodecFactory){
+    cv::Mat example = cv::imread("../../modules/core/resources/bgExampleDepth.tif");
+
+    cv::Mat gray_image;
+    cv::cvtColor(example, gray_image, CV_BGR2GRAY);
+    cv::Mat shortMat;
+    gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
+
+    cv::resize(shortMat, shortMat, cv::Size(1440,2048));
+
+    boost::program_options::variables_map compressionOptions;
+    compressionOptions.insert(std::make_pair("CodecType",po::variable_value(std::string("QuadTree"), false)));
+    po::notify(compressionOptions);
+    auto codec = DepthCodecFactory::construct(compressionOptions);
+
+    CodecEvalFramework<cv::Mat, IDepthCodec> testFramework(codec.get());
+    auto rslt = testFramework.evaluateCodecOnExample(shortMat, true);
+    rslt.printPerformance(std::cout);
+
+    cv::waitKey(0);
+}
+
+BOOST_AUTO_TEST_CASE(TestCompressionFactory){
+    std::cout<< DepthCodecFactory::getOptions();
 }

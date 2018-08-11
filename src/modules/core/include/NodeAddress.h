@@ -5,6 +5,10 @@
 #ifndef CAPTURE_TRIANGULATION_NODEADDRESS_H
 #define CAPTURE_TRIANGULATION_NODEADDRESS_H
 
+#include <iostream>
+#include <tuple>
+#include <bitset>
+#include <math.h>
 
 using NodeAddress32bit = unsigned int;
 using NodeAddress16bit = unsigned short;

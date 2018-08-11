@@ -3,7 +3,7 @@
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
 message(STATUS BOOST_ROOT ${BOOST_ROOT})
-find_package (Boost 1.67.0 REQUIRED log)
+find_package (Boost 1.67.0 REQUIRED log program_options)
 message(STATUS OpenCV_DIR ${OpenCV_DIR})
 find_package (OpenCV 3.4.1 REQUIRED)
 
@@ -12,7 +12,9 @@ message(STATUS ${_opencv_args})
 add_library(Core
 		src/CodecEvalFramework.cpp
 		src/NamedTimer.cpp
-    )
+		src/QuadTreeCodecFactory.cpp
+		src/CodecEvalFramework.cpp
+		src/DepthCodecFactory.cpp include/MultipleQuadTree.h)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
@@ -41,10 +43,10 @@ add_executable(TestCore test/TestCore.cpp)
 
 target_include_directories(TestCore
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
-		PRIVATE Core
+		PUBLIC Core
 		)
 target_link_libraries(TestCore
-		PRIVATE Core
+		PUBLIC Core
 		)
 
 add_test(TestCore TestCore)
