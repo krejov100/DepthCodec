@@ -7,7 +7,7 @@
 
 
 #include "QuadTree.h"
-
+#include "boost/log/trivial.hpp"
 
 /*
  *
@@ -44,30 +44,12 @@
 
  */
 
+
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class RollingQuadTree: public QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
-    int mMaxDepth = 10;
-public:
-
-    //TODO make address depth agnostic
-    //TODO allow LEAF data to represent more then one pixel
-    //TODO TEST at compile time the check that the leaf can represent the cell size
-
-    RollingQuadTree(const cv::Mat & im, const SPLIT_POLICY_TYPE& split):
-            QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(im.cols, im.rows, split)
-    {
-        //mMaxDepth = MAX_DEPTH;
-        BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< mMaxDepth;
-        for (int y = 0; y < im.rows; y++) {
-            for (int x = 0; x < im.cols; x++) {
-                // TODO offload cell eval to the leaf, allowing parsing to be depth agnostic
-                auto a = this->encodeAddress(x, y, mMaxDepth);
-                auto depth = im.at<ushort>(y, x);
-                addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
-            }
-        }
-    }
-
+    size_t mImageWidth;
+    size_t mImageHeight;
+protected:
     void addLeafThenPrune(ADDRESS_TYPE a, const LEAF_DATA_TYPE& leafData){
         // add new cell to tree
         this->addLeaf(a, leafData);
@@ -86,8 +68,47 @@ public:
         }
     };
 
+public:
+
+    //TODO make address depth agnostic
+    //TODO allow LEAF data to represent more then one pixel
+    //TODO TEST at compile time the check that the leaf can represent the cell size
+    RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(split){};
+
+    size_t getImageWidth(){return mImageWidth;}
+    size_t getImageHeight(){return mImageHeight;}
+
+    void parseImage(const cv::Mat & im)
+    {
+        mImageWidth = im.cols;
+        mImageHeight = im.rows;
+        size_t maxTreeDepth = maxDepth<ADDRESS_TYPE>();
+        BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< maxTreeDepth;
+        for (int y = 0; y < im.rows; y++) {
+            for (int x = 0; x < im.cols; x++) {
+                // TODO offload cell eval to the leaf, allowing parsing to be depth agnostic
+                auto a = this->encodeAddress(x, y, maxTreeDepth);
+                auto depth = im.at<ushort>(y, x);
+                addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
+            }
+        }
+    }
+
+    void reconstructImage(cv::Mat& rslt) const {
+        for(auto leaf : this->tree) {
+            auto decodedLeaf = this->decodeAddress(leaf.first);
+            int x = std::get<0>(decodedLeaf);
+            int y = std::get<1>(decodedLeaf);
+            int width = std::get<2>(decodedLeaf);
+            int height = std::get<3>(decodedLeaf);
+            // TODO make this part of the LEAF_NODE_TYPE
+            cv::Mat cell = rslt(cv::Rect(x , y, width, height));//.rowRange(y, y + height).colRange(x , x + width);
+            cell.setTo(leaf.second.decodedValue());
+        }
+    }
 };
 
 
 
 #endif //CAPTURE_TRIANGULATION_ROLLINGQUADTREE_H
+

@@ -12,11 +12,6 @@
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class QuadTree : private SPLIT_POLICY_TYPE {
-    //size_t mWidth;
-    //size_t mHeight;
-    size_t mImageWidth;
-    size_t mImageHeight;
-
     typedef typename std::map<ADDRESS_TYPE, LEAF_DATA_TYPE>::iterator Node;
 
     void prune(const LEAF_DATA_TYPE &parentData, Node tl, Node tr, Node bl, Node br) {
@@ -34,12 +29,8 @@ protected:
     std::map<ADDRESS_TYPE, LEAF_DATA_TYPE> tree;
 
 public:
-    QuadTree(size_t width, size_t height , const SPLIT_POLICY_TYPE& split):
-            SPLIT_POLICY_TYPE(split),
-            //mWidth(upperPowerOfTwo(width)),
-            //mHeight(upperPowerOfTwo(height)),
-            mImageWidth(width),
-            mImageHeight(height)
+    QuadTree(const SPLIT_POLICY_TYPE& split):
+            SPLIT_POLICY_TYPE(split)
     {}
 
     size_t getSizeInBtyes(){
@@ -80,24 +71,12 @@ public:
         return false;
     }
 
+    static size_t getMaxDimensionLength(){
+        return maxDimensionLength<ADDRESS_TYPE>();
+    }
+
     //int getWidth() const {return mWidth;}
     //int getHeight() const {return mHeight;}
-
-    cv::Mat decode() const {
-        cv::Mat grayImage(mImageHeight, mImageWidth, CV_16UC1, cv::Scalar(0));
-        for(auto leaf : this->tree) {
-            auto decodedLeaf = this->decodeAddress(leaf.first);
-            int x = std::get<0>(decodedLeaf);
-            int y = std::get<1>(decodedLeaf);
-            int width = std::get<2>(decodedLeaf);
-            int height = std::get<3>(decodedLeaf);
-            // TODO make this part of the LEAF_NODE_TYPE
-            cv::Mat cell = grayImage(cv::Rect(x , y, width, height));//.rowRange(y, y + height).colRange(x , x + width);
-            cell.setTo(leaf.second.decodedValue());
-        }
-
-        return grayImage;
-    }
 };
 
 
