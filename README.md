@@ -1,7 +1,6 @@
-#Compression
-http://www.pitivi.org/manual/codecscontainers.html
+# Depth Codec
 
-##System Overview
+## System Overview
 There are two major components to this project, the compression methods and the evaluation framework.
 The compression method is written to use a consistent interface allowing the evaluation framework to compare methods. 
 
@@ -15,22 +14,21 @@ In order of the acquisition stack:
 ### PointCloud 
 ### Mesh/Primatives
 
-
 ## Testing Framework
 ### Dataset for Evaluation
 captured with extrinsic information, allowing comparitive evaluation between 
 pointcloud and depth image methods
 
-####Preprocessing filters
+#### Preprocessing filters
 Compression performance is again, highly correlated with the complexity and nature of the input data.
 For example, run length encoding offers tremendous performance when most of the image is zero after back ground subtraction.
 Another example is that bilateral filtering will provide smoother gradients, which favours wavelet methods.  
 
+Examples of pre-processing
 ##### Back Ground Removal
 ##### bilateral filtering 
 ##### Resolution Upscaling
 ##### Hole Filling
-
  
 ### Evaluation    
 
@@ -38,7 +36,6 @@ Another example is that bilateral filtering will provide smoother gradients, whi
     Qaulitative evaluation of performance.
     
 #### Performance Measures
-    Visualisation of before and after compression, with a reperesentation of the error.
 
 
     
