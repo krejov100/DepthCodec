@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(TestTest){
 
 //return the depth in the tree given an address
 BOOST_AUTO_TEST_CASE(TestQuadTreeGetDepth) {
-    NodeAddress address = 0b0000100101110100;
+    NodeAddress32bit address = 0b0000100101110100;
     BOOST_TEST(getDepth(address) == 4);
     address = 0b0000000101110100;
     BOOST_TEST(getDepth(address) == 3);
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(TestQuadTreeGetDepth) {
 
 /// given an address, return the tl tr bl br of that address
 BOOST_AUTO_TEST_CASE(TestQuadTreeSiblings) {
-    NodeAddress address = 0b0000101101110100;
+    NodeAddress32bit address = 0b0000101101110100;
 
     auto pa = parentAddress(address);
     auto tl = topLeft(pa);
@@ -82,29 +82,29 @@ public:
 };
 
 BOOST_AUTO_TEST_CASE(TestTreeBuild){
-    NodeAddress address = 0b000100;
+    NodeAddress32bit address = 0b000100;
     auto pa = parentAddress(address);
     BOOST_TEST(pa == 0b000);
 
-    RollingQuadTree<MinMax, AbsDiffPolicy> t(AbsDiffPolicy(4));
+    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(4));
 }
 
 BOOST_AUTO_TEST_CASE(TestEncodeAddressRecurse) {
-    auto a = encodeAddressRecurse(3, 2, 4/2, 4/2, 2);
+    auto a = encodeAddressRecurse<NodeAddress32bit>(3, 2, 4/2, 4/2, 2);
     printAddress(a);
     BOOST_TEST(a == 0b101111);
 
 
-    auto b = encodeAddressRecurse(199, 199, 200/2, 200/2, 6);
+    auto b = encodeAddressRecurse<NodeAddress32bit>(199, 199, 200/2, 200/2, 6);
     printAddress(b);
     BOOST_TEST(b == 0b111111111111111111);
 
 
-    auto c = encodeAddressRecurse(0, 0, 200/2, 200/2, 6);
+    auto c = encodeAddressRecurse<NodeAddress32bit>(0, 0, 200/2, 200/2, 6);
     printAddress(c);
     BOOST_TEST(c == 0b100100100100100100);
 
-    auto d = encodeAddressRecurse(1, 2, 4/2, 4/2, 2);
+    auto d = encodeAddressRecurse<NodeAddress32bit>(1, 2, 4/2, 4/2, 2);
     printAddress(d);
     BOOST_TEST(d == 0b101110);
 }
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(TestDecodeAddressRecurse) {
 
 
 BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
-    NodeAddress address = 0b000100;
+    NodeAddress32bit address = 0b000100;
     auto pa = parentAddress(address);
     BOOST_TEST(pa == 0b000);
 
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
 
-    RollingQuadTree<MinMax, AbsDiffPolicy> t(shortMat, AbsDiffPolicy(30 * (65536/255)));
+    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(shortMat, AbsDiffPolicy(30 * (65536/255)));
 
     auto decompressed = t.decode();
     showCompressionArtifacts(shortMat, decompressed);
@@ -169,8 +169,6 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     /*BOOST_TEST(exampleVec.size() == decompressedVec.size());
     for(size_t i = 0; i < exampleVec.size(); i++)
         BOOST_TEST(exampleVec[i] == decompressedVec[i]);*/
-
-
 
     cv::imshow("decompressed", decompressed);
     cv::waitKey(0);
