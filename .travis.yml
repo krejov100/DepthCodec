@@ -1,7 +1,9 @@
 language: cpp
 sudo: required
+
 compiler:
   - gcc
+  
 addons:
   apt:
     sources:
@@ -9,12 +11,14 @@ addons:
     packages:
     - g++-7
     - gcc-7
+    
 env:
     - CXX=g++-7
     
-script:
+before_script:
   - cd src
   - mkdir build
   - cd build
   cmake ..
-  make 
+  
+script: make && make test
