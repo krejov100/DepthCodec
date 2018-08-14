@@ -9,13 +9,28 @@ set (EXTRA_CMAKE_ARGS)
 ####################
 ###############BOOST
 ####################
+
+if( UNIX )
+  set( Boost_url "http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.gz")
+  set( Boost_md5 4850fceb3f2222ee011d4f3ea304d2cb )
+  set( Boost_Bootstrap_Command ./bootstrap.sh )
+  set( Boost_b2_Command ./b2 )
+else()
+  if( WIN32 )
+    set( Boost_url "http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.zip")
+    set( Boost_md5 6da1ba65f8d33b1d306616e5acd87f67 )
+    set( Boost_Bootstrap_Command cmd /C bootstrap.bat msvc )
+    set( Boost_b2_Command b2.exe )
+  endif()
+endif()
+
 # Use static linking to avoid issues with system-wide installations of Boost.
 list (APPEND DEPENDENCIES ep_boost)
 ExternalProject_Add (ep_boost
-        URL http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.gz
-        URL_MD5 4850fceb3f2222ee011d4f3ea304d2cb
-        CONFIGURE_COMMAND ./bootstrap.sh
-        BUILD_COMMAND ./b2 link=static
+        URL ${Boost_url}
+        URL_MD5 ${Boost_md5}
+        CONFIGURE_COMMAND ${Boost_Bootstrap_Command}
+        BUILD_COMMAND ${Boost_b2_Command} link=static
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND ""
         )
