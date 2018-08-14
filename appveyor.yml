@@ -10,10 +10,6 @@ before_build:
     
     mkdir build && cd build
     
-    dir .
-    
-    dir ..
-    
     cmake ..\src
 build:
     cmake --build
