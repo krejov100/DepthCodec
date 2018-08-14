@@ -14,7 +14,7 @@ add_library(Core
 		src/NamedTimer.cpp
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		src/DepthCodecFactory.cpp include/MultipleQuadTree.h)
+		src/DepthCodecFactory.cpp)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
