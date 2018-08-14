@@ -7,9 +7,13 @@ install:
 before_build:
 - cmd: >-
     cd c:\projects\depthcodec
+    
     mkdir build && cd build
+    
     dir .
+    
     dir ..
+    
     cmake ..\src
 build:
     cmake --build
