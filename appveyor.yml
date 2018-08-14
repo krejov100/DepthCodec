@@ -2,6 +2,7 @@ branches:
   only:
   - development
 image: Visual Studio 2015
+clone_folder: c:\projects\depthcodec
 install:
 before_build:
 - cmd: >-
