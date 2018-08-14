@@ -7,6 +7,6 @@
 
 #include <vector>
 
-using CompressedData = typename std::vector<unsigned char>;
+using CompressedData = typename std::vector<char>;
 
 #endif //DEPTHCODEC_COMPRESSEDDATA_H

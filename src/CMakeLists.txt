@@ -11,8 +11,10 @@ if (USE_SUPERBUILD)
     include (cmake/SuperBuild.cmake)
     return()                      # stop processing this file further
 else()
-    set(BOOST_ROOT ${CMAKE_BINARY_DIR}/Dependencies/Source/ep_boost)
-    set(OpenCV_DIR ${CMAKE_BINARY_DIR}/Dependencies/Source/opencv-build)
+    if(USE_IDE)
+        set(BOOST_ROOT ${CMAKE_BINARY_DIR}/Dependencies/Source/ep_boost)
+        set(OpenCV_DIR ${CMAKE_BINARY_DIR}/Dependencies/Source/opencv-build)
+    endif()
     project(DepthCodec)
 endif()
 
