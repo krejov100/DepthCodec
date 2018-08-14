@@ -1,0 +1,13 @@
+branches:
+  only:
+  - development
+image: Visual Studio 2015
+install:
+before_build:
+- cmd: >-
+    cd ./src && mkdir build && cd build
+    cmake ..
+build:
+    cmake --build
+test_script:
+  - ctest
