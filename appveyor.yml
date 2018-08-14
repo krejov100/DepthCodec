@@ -5,7 +5,7 @@ image: Visual Studio 2015
 install:
 before_build:
 - cmd: >-
-    cd C:\projects\depthcodec/src && mkdir build && cd build
+    cd C:\projects\depthcodec\src && mkdir build && cd build
     cmake ..
 build:
     cmake --build
