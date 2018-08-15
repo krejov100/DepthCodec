@@ -3,7 +3,10 @@ sudo: required
 
 compiler:
   - gcc
-  
+
+before_install:
+  - pip install --user cpp-coveralls
+
 addons:
   apt:
     sources:
@@ -19,6 +22,10 @@ before_script:
   - cd src
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DCMAKE_CXX_COMPILER=g++-7
   
-script:   make
+script:   
+  - make
+
+after_success:
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
