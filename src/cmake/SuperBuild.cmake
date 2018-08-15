@@ -30,7 +30,7 @@ ExternalProject_Add (ep_boost
         URL ${Boost_url}
         URL_MD5 ${Boost_md5}
         CONFIGURE_COMMAND ${Boost_Bootstrap_Command}
-        BUILD_COMMAND ${Boost_b2_Command} link=static
+        BUILD_COMMAND ${Boost_b2_Command} link=static --with-system --with-program_options --with-log
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND ""
         )

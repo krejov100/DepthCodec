@@ -7,11 +7,15 @@
 #include "CodecEvalFramework.h"
 #include "NodeAddress.h"
 #include "QuadTreeTypes.h"
+#include "opencv2/core/version.hpp"
 
+#define BOOST_LOG_DYN_LINK 1
 
 BOOST_AUTO_TEST_CASE(TestTest){
-    std::cout << "Using Opencv "
-              << cv::getVersionString()
+    std::cout << "Using OpenCV "
+              << CV_VERSION_MAJOR << "."  // major version
+              << CV_VERSION_MINOR << "."  // minor version
+              << CV_VERSION_REVISION    // patch level
               << std::endl;
 
     std::cout << "Using Boost "
