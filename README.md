@@ -1,4 +1,5 @@
 # Depth Codec
+This repo looks to perform comparision between differing depth codecs, on a veriaty of depth data captured using RealSense D415 and D435.
 
 ## System Overview
 There are two major components to this project, the compression methods and the evaluation framework.
