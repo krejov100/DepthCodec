@@ -12,8 +12,6 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-using DataStream = CompressedData;
-
 /// Prepares a message for transport, possibly through serialisation
 template<typename MESSAGE_TYPE>
 class Marshaller{

@@ -4,6 +4,16 @@ option (USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
 set(CMAKE_CXX_STANDARD 14)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.4")
+        message(FATAL_ERROR "Insufficient gcc version")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "your.required.msvc.version")
+        message(FATAL_ERROR "Insufficient msvc version")
+    endif()
+endif()
+
 if (USE_SUPERBUILD)
     project (SUPERBUILD NONE)
     # execute the superbuild (this script will be invoked again without the

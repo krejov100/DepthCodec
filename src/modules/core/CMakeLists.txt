@@ -16,7 +16,7 @@ add_library(Core
 		src/NamedTimer.cpp
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		src/DepthCodecFactory.cpp)
+		src/DelegatingFactory.cpp include/cvHelpers.h)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}

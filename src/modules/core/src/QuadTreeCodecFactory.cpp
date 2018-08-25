@@ -6,9 +6,8 @@
 #include "QuadTreeCodecFactory.h"
 #include "QuadTreeTypes.h"
 
-std::shared_ptr<IDepthCodec> QuadTreeCodecFactory::construct(const po::variables_map& options){
-    RollingQT32bitMinMaxAbsDiff prototypeTree(AbsDiffPolicy(30 * (65536/255)));
-    return std::move(std::make_unique<MultipleQuadTreeCodec<RollingQT32bitMinMaxAbsDiff>>(prototypeTree));
+std::shared_ptr<IDepthCodec> QuadTreeCodecFactory::construct(){
+    return std::make_shared<RollingQT32bitMinMaxAbsDiff>(AbsDiffPolicy(30 * (65536/255)));
 }
 
 po::options_description QuadTreeCodecFactory::getOptions(){

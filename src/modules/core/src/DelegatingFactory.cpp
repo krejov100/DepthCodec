@@ -8,10 +8,16 @@
 #include <map>
 #include <QuadTreeCodecFactory.h>
 
+DepthCodecFactory::DepthCodecFactory(const po::variables_map& options):Factory(options){
+}
 
+void DepthCodecFactory::registerSubFactory(std::string name, DepthCodecFactory* childFactory)
+{
+    mSubCodecFactories.insert(std::make_pair(name, std::bind(&DepthCodecFactory::construct,childFactory)));
+};
 
-std::shared_ptr<IDepthCodec> DepthCodecFactory::construct(const po::variables_map& options){
-    return subCodecFactory.find(options["CodecType"].as<std::string>())->second(options);
+std::shared_ptr<IDepthCodec> DepthCodecFactory::construct(){
+    return mSubCodecFactories.find(mOptions["CodecType"].as<std::string>())->second();
 }
 
 po::options_description DepthCodecFactory::getOptions(){
@@ -25,4 +31,4 @@ po::options_description DepthCodecFactory::getOptions(){
     return desc;
 }
 
-std::map<std::string, std::function<std::shared_ptr<IDepthCodec>(const po::variables_map&)>> DepthCodecFactory::subCodecFactory = {{"QuadTree", &QuadTreeCodecFactory::construct}};
+

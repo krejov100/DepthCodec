@@ -8,6 +8,10 @@
 
 #include "QuadTree.h"
 #include "boost/log/trivial.hpp"
+#include "IDepthCodec.h"
+
+using DataStream = CompressedData;
+#include "BoostMarshaller.h"
 
 /*
  *
@@ -46,7 +50,7 @@
 
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
-class RollingQuadTree: public QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
+class RollingQuadTree: public IDepthCodec, public QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
     size_t mImageWidth;
     size_t mImageHeight;
 protected:
@@ -75,10 +79,7 @@ public:
     //TODO TEST at compile time the check that the leaf can represent the cell size
     RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(split){};
 
-    size_t getImageWidth(){return mImageWidth;}
-    size_t getImageHeight(){return mImageHeight;}
-
-    void parseImage(const cv::Mat & im)
+    CompressedData compress(const cv::Mat & im)
     {
         mImageWidth = im.cols;
         mImageHeight = im.rows;
@@ -92,9 +93,12 @@ public:
                 addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
             }
         }
+
+        BoostMarshaller<RollingQuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>> marshaller;
+        return marshaller.marshall(*this);
     }
 
-    void reconstructImage(cv::Mat& rslt) const {
+    void decompress(const CompressedData& data, cv::Mat& depthImage){
         for(auto leaf : this->tree) {
             auto decodedLeaf = this->decodeAddress(leaf.first);
             int x = std::get<0>(decodedLeaf);
@@ -102,12 +106,15 @@ public:
             int width = std::get<2>(decodedLeaf);
             int height = std::get<3>(decodedLeaf);
             // TODO make this part of the LEAF_NODE_TYPE
-            cv::Mat cell = rslt(cv::Rect(x , y, width, height));//.rowRange(y, y + height).colRange(x , x + width);
+            cv::Mat cell = depthImage.rowRange(y, y + height).colRange(x , x + width);
             cell.setTo(leaf.second.decodedValue());
         }
     }
-};
 
+    cv::Size getOptimalSize(){
+        return cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
+    }
+};
 
 
 #endif //CAPTURE_TRIANGULATION_ROLLINGQUADTREE_H

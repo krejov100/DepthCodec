@@ -7,8 +7,47 @@
 
 
 #include <memory>
-#include "IDepthCodec.h"
+#include "DepthCodecFactory.h"
+#include "cvHelpers.h"
 
+/// class that holds multiple codecs for a single image
+class TiledCodecs: public IDepthCodec{
+    std::vector<std::shared_ptr<IDepthCodec>> subCodecs;
+    DepthCodecFactory& mFactory;
+    cv::Size mImageSize;
+
+    TiledCodecs(DepthCodecFactory &factory):mFactory(factory){};
+
+    virtual CompressedData compress(const cv::Mat& depthImage){
+        CompressedData rslt;
+
+        mImageSize = depthImage.size();
+
+        auto exampleCodec = mFactory.construct();
+        cv::Size maxTreeSize = exampleCodec->getOptimalSize ();
+
+        for(int y = 0; y < mImageSize.height; y+=maxTreeSize.height){
+            for(int x = 0; x < mImageSize.width; x+=maxTreeSize.width){
+                // use the max size of the tree for the width and height, or what remains of the image
+                size_t width = std::min(maxTreeSize.width ,  mImageSize.width - x);
+                size_t height = std::min(maxTreeSize.height , mImageSize.height - y);
+
+                subCodecs.push_back(mFactory.construct());
+
+                cv::Mat subRegion = depthImage(cv::Range(x, x + width), cv::Range(y, y + height));
+                //subtree->parseImage(ROI);
+                //addTree(x, y, subtree);
+            }
+        }
+    }
+
+    virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
+
+    }
+};
+
+
+/*
 template<typename TREE_TYPE>
 class MultipleQuadTreeCodec: public IDepthCodec
 {
@@ -19,7 +58,6 @@ class MultipleQuadTreeCodec: public IDepthCodec
     TREE_TYPE mProtoTypeTree;
     size_t mImageWidth;
     size_t mImageHeight;
-
 
     /// the wrapped tree, now also includes an x, y position, describing which ROI it is responsible for parsing
     class ImageParsingQuadTreeWrapper
@@ -39,6 +77,9 @@ class MultipleQuadTreeCodec: public IDepthCodec
         virtual void reconstructImage(cv::Mat & rslt) const {mTree->reconstructImage(rslt);}
         short getXPosition(){return mXPosition;}
         short getYPosition(){return mYPosition;}
+
+        friend std::ostream& operator<<(std::ostream& os, const ImageParsingQuadTreeWrapper& dt);
+        friend std::istream& operator>>(std::istream& is, ImageParsingQuadTreeWrapper& codec);
     };
 
     // vector of trees that combine to represent the image as a whole
@@ -57,24 +98,7 @@ public:
     };
 
     void parseImage(const cv::Mat & im) {
-        mImageWidth = im.cols;
-        mImageHeight = im.rows;
-        size_t maxTreeSize = TREE_TYPE::getMaxDimensionLength();
 
-        for(size_t y = 0; y < mImageHeight; y+=maxTreeSize){
-            for(size_t x = 0; x < mImageWidth; x+=maxTreeSize){
-                // use the max size of the tree for the width and hight, or what remains of the image
-                size_t width = std::min(maxTreeSize ,  mImageWidth - x);
-                size_t height = std::min(maxTreeSize , mImageHeight - y);
-
-                // subregion of the image represented using a single tree
-                cv::Rect subRegion(x, y, width, height);
-                std::shared_ptr<TREE_TYPE> subtree = std::make_shared<TREE_TYPE>(mProtoTypeTree);
-                cv::Mat ROI = im(subRegion);
-                subtree->parseImage(ROI);
-                addTree(x, y, subtree);
-            }
-        }
     };
 
     void reconstructImage(cv::Mat& rslt)const {
@@ -103,6 +127,20 @@ public:
     virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
         reconstructImage(depthImage);
     };
-
 };
+
+std::ostream& operator<<(std::ostream& os, const ImageParsingQuadTreeWrapper& codec)
+{
+    os << codec.mProtoTypeTree << codec.mImageWidth << codec.mImageHeight << codec.mSubRegionTrees;
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, ImageParsingQuadTreeWrapper& codec)
+{
+    is >> codec.mXPosition >> codec.mYPosition >> codec.mTree;
+    return is;
+}
+
+
+*/
 #endif //DEPTHCODEC_MULTIPLEQUADTREE_H

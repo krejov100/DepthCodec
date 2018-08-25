@@ -124,10 +124,10 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
 
 
     RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
-    t.parseImage(shortMat);
+    CompressedData data = t.compress(shortMat);
 
-    cv::Mat decompressed(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
-    t.reconstructImage(decompressed);
+    //cv::Mat decompressed(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
+    t.decompress(data, decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
     std::vector<uchar> decompressedVec(decompressed.datastart,  decompressed.dataend);

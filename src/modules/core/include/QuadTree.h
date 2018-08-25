@@ -74,9 +74,6 @@ public:
     static size_t getMaxDimensionLength(){
         return maxDimensionLength<ADDRESS_TYPE>();
     }
-
-    //int getWidth() const {return mWidth;}
-    //int getHeight() const {return mHeight;}
 };
 
 

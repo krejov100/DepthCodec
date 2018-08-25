@@ -18,7 +18,7 @@ protected:
     bool shouldPrune(LEAF_DATA_TYPE leafData){
         //if(leafData.min == 0)
         //    return true;
-        return abs(leafData.min-leafData.max) <= mThresh && leafData.min != 0;
+        return abs(leafData.min-leafData.max) <= mThresh ;
     }
 public:
     AbsDiffPolicy(short thresh):mThresh(thresh){}

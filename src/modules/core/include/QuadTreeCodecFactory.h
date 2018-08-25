@@ -5,16 +5,16 @@
 #ifndef DEPTHCODEC_QUADTREECODECFACTORY_H
 #define DEPTHCODEC_QUADTREECODECFACTORY_H
 
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/options_description.hpp>
-#include "IDepthCodec.h"
+#include "Factory.h"
+#include "DepthCodecFactory.h"
 
 namespace po = boost::program_options;
 
 /// This class is used to configure a compression method, popluating the pimpl
-class QuadTreeCodecFactory{
+class QuadTreeCodecFactory: public DepthCodecFactory{
 public:
-    static std::shared_ptr<IDepthCodec> construct(const po::variables_map& options);
+    QuadTreeCodecFactory(const po::variables_map& options):DepthCodecFactory(options){};
+    std::shared_ptr<IDepthCodec> construct();
     static po::options_description getOptions();
 };
 
