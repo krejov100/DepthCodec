@@ -1,2 +1,6 @@
 .idea
 .git
+data
+build
+cmake-build-debug
+cmake-build-release
