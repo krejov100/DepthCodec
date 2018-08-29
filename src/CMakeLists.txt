@@ -2,10 +2,11 @@ cmake_minimum_required (VERSION 3.0.0)
 
 option (USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
+MESSAGE(STATUS ${CMAKE_CXX_COMPILER_ID})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.4")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "7.3")
         message(FATAL_ERROR "Insufficient gcc version")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

@@ -20,6 +20,8 @@ protected:
         //    return true;
         return abs(leafData.min-leafData.max) <= mThresh ;
     }
+
+    AbsDiffPolicy(){};
 public:
     AbsDiffPolicy(short thresh):mThresh(thresh){}
 };
@@ -43,6 +45,12 @@ public:
     }
 
     unsigned short decodedValue(){return max;};
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & max;
+    }
 };
 
 using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy>;

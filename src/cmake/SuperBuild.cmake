@@ -28,7 +28,7 @@ set_property (DIRECTORY PROPERTY EP_BASE Dependencies)
 
 option( USE_SYSTEM_Boost "Use system libraries for Boost" OFF )
 if( ${USE_SYSTEM_Boost} MATCHES "OFF" )
-  include( External-Boost.cmake )
+  include(External-Boost)
   set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Boost )
 else()
   find_package( Boost REQUIRED )
@@ -52,7 +52,7 @@ ExternalProject_Add(ep_opencv
         -DBUILD_EXAMPLES:BOOL=FALSE
         -DBUILD_TESTS:BOOL=FALSE
         -DBUILD_SHARED_LIBS:BOOL=TRUE
-        -DWITH_CUDA:BOOL=FALASE
+        -DWITH_CUDA:BOOL=FALSE
         -DWITH_FFMPEG:BOOL=FALSE
         -DBUILD_PERF_TESTS:BOOL=FALSE
         INSTALL_COMMAND ""

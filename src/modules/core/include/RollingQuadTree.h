@@ -12,6 +12,7 @@
 
 using DataStream = CompressedData;
 #include "BoostMarshaller.h"
+#include <boost/serialization/map.hpp>
 
 /*
  *
@@ -72,6 +73,7 @@ protected:
         }
     };
 
+    RollingQuadTree(){};
 public:
 
     //TODO make address depth agnostic
@@ -114,6 +116,17 @@ public:
     cv::Size getOptimalSize(){
         return cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
     }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & boost::serialization::base_object<QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>(*this);
+        ar &mImageWidth;
+        ar &mImageHeight;
+    }
+
+    friend class boost::serialization::access;
+    friend class BoostMarshaller<RollingQuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>;
 };
 
 

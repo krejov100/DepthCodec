@@ -28,6 +28,7 @@ class QuadTree : private SPLIT_POLICY_TYPE {
 protected:
     std::map<ADDRESS_TYPE, LEAF_DATA_TYPE> tree;
 
+    QuadTree(){};
 public:
     QuadTree(const SPLIT_POLICY_TYPE& split):
             SPLIT_POLICY_TYPE(split)
@@ -73,6 +74,12 @@ public:
 
     static size_t getMaxDimensionLength(){
         return maxDimensionLength<ADDRESS_TYPE>();
+    }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & tree;
     }
 };
 

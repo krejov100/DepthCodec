@@ -8,6 +8,8 @@
 #include "NodeAddress.h"
 #include "QuadTreeTypes.h"
 #include "opencv2/core/version.hpp"
+#include "Gradiant.h"
+#include "ceMatrix.h"
 
 #define BOOST_LOG_DYN_LINK 1
 
@@ -183,6 +185,10 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
     rslt.printPerformance(std::cout);
 
     cv::waitKey(0);
+}
+
+BOOST_AUTO_TEST_CASE(TestCEmatrixMul){
+    test_multiply();
 }
 
 BOOST_AUTO_TEST_CASE(TestCompressionFactory){
