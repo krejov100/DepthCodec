@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from gradiant import *
 
 def v(n):
 	"""compute u value of matrix"""
@@ -24,13 +25,6 @@ def rh(im):
 			vals[1] += (y * im[y,x])
 			vals[2] += im[y,x]
 	return vals;
-
-def makeGradiant(n, b0 ,b1, b2):
-	rslt = np.zeros((n,n))
-	for y in xrange(0, rslt.shape[0]):
-		for x in xrange(0, rslt.shape[1]):
-			rslt[y,x] = b0 + (b1*x) + (b2*y)
-	return rslt
 
 def main():
 	n = 100
