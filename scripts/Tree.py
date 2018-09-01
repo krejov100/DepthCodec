@@ -8,12 +8,17 @@ class Rect():
         self.width = width
         self.height = height
 
+    def tl(self):
+        return (int(self.x), int(self.y))
+
+    def br(self):
+        return (int(self.x + self.width), int(self.y + self.height))
+
+
 def reachedBottom(ROI):
-    print(ROI.width)
     if ROI.width == 1 or ROI.height == 1:
         return True
     return False
-
 
 class QuadROILeaf():
     def __init__(self, ROI):
@@ -42,6 +47,8 @@ class QuadROILeaf():
         else:
             return None
 
+    def draw(self, im):
+        cv2.rectangle(im, self.ROI.tl(), self.ROI.br(), 255)
 
 class Node():
     def __init__(self, leaf_data, parent):
@@ -57,6 +64,19 @@ class Node():
         child_data = self.leaf_data.split()
         if child_data:
             self.children = [Node(x, self) for x in child_data]
+    def draw(self, im):
+        self.leaf_data.draw(im)
+        for child in self.children:
+            child.draw(im)
+
+
+def shouldSplit(image, leaf):
+    roi = leaf.leaf_data.ROI
+    subImage = image[int(roi.y):int(roi.y) + int(roi.height), int(roi.x):int(roi.x) + int(roi.width)]
+    cv2.imshow('erts',subImage)
+    cv2.waitKey(1)
+    return True
+
 
 
 class Tree():
@@ -67,14 +87,24 @@ class Tree():
         to_grow = [self.root]
         while(len(to_grow)):
             leaf = to_grow.pop(0)
-            leaf.grow()
-            to_grow  = to_grow + leaf.children
+
+            if shouldSplit(image, leaf):
+                leaf.grow()
+                to_grow  = to_grow + leaf.children
+
+    def draw(self, im):
+        self.root.draw(im);
+
+
 
 def main():
     tree = Tree()
-    tree.root = Node(QuadROILeaf(Rect(0,0,8,8)), None)
+    tree.root = Node(QuadROILeaf(Rect(0, 0, 256, 256)), None)
     im = cv2.imread('bgExampleDepth.tif')
+
+    im = cv2.resize(im, (256, 256), 0, 0, cv2.INTER_NEAREST)
     tree.bottomUp(im)
+    tree.draw(im)
 
     plt.imshow(im)
     plt.pause(0)
