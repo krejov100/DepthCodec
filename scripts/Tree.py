@@ -1,5 +1,6 @@
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Rect():
     def __init__(self, x, y, width, height):
@@ -69,12 +70,21 @@ class Node():
         for child in self.children:
             child.draw(im)
 
+    def decode(self):
+
+
+def MSE(A,B):
+    return np.mean(((A - B) ** 2))
+def PSNR(A,B):
+    return (20*np.log10(0xffff)) - (10 * np.log10(MSE(A,B))  )
 
 def shouldSplit(image, leaf):
     roi = leaf.leaf_data.ROI
     subImage = image[int(roi.y):int(roi.y) + int(roi.height), int(roi.x):int(roi.x) + int(roi.width)]
-    cv2.imshow('erts',subImage)
-    cv2.waitKey(1)
+
+    meanSubImage = np.ones(subImage.shape) * np.mean(subImage)
+    print(subImage.max() - subImage.min())
+    print(PSNR(subImage,meanSubImage))
     return True
 
 
@@ -82,6 +92,7 @@ def shouldSplit(image, leaf):
 class Tree():
     def __init__(self):
         self.root = None
+        self.ROI =
 
     def bottomUp(self, image):
         to_grow = [self.root]
@@ -93,8 +104,11 @@ class Tree():
                 to_grow  = to_grow + leaf.children
 
     def draw(self, im):
-        self.root.draw(im);
+        self.root.draw(im)
 
+    def decode(self):
+        im = np.zeros(self.root.)
+        return self.root.decode()
 
 
 def main():
@@ -105,6 +119,7 @@ def main():
     im = cv2.resize(im, (256, 256), 0, 0, cv2.INTER_NEAREST)
     tree.bottomUp(im)
     tree.draw(im)
+    decompressed = tree.decode()
 
     plt.imshow(im)
     plt.pause(0)
