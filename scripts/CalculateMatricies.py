@@ -30,11 +30,12 @@ def rh(im):
 			vals[2] += im[y, x]
 	return vals
 
-def solve_gradiant(im):
+def compute_gradiant(im):
 	n = im.shape[0]
+	print(n)
 	return rh(im - np.mean(im)) * inverse_lh(n), np.mean(im)
 
-def im_from_gradiant(n, bs):
+def render_gradiant(n, bs):
 	return make_gradiant(n, bs[0][0, 2] + bs[0][0, 0] + bs[0][0, 1], bs[0][0, 0], bs[0][0, 1]) + bs[1]
 
 def main():
@@ -46,11 +47,11 @@ def main():
 	grad = im[750:950,100:300,0]
 
 	print("rh" + str(rh(grad)))
-	bs = solve_gradiant(grad)
+	bs = compute_gradiant(grad)
 	print("bs" + str(bs))
 
 	plt.figure()
-	grad2 = im_from_gradiant(n, bs)
+	grad2 = render_gradiant(n, bs)
 
 	print(grad.min())
 	print(grad.max())

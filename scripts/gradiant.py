@@ -15,7 +15,7 @@ def ABmask(n, p1, p2):
 	rslt = np.zeros((n,n))
 	for y in range(0, rslt.shape[0]):
 		for x in range(0, rslt.shape[1]):
-			rslt[y,x] = leftOrRight(n, p1, p2)		
+			rslt[y,x] = leftOrRight(n, p1, p2)
 		
 #  is p3 on the left of a line connecting p1 and p2
 def isPleftOfLine(p1, p2, p3):
@@ -174,7 +174,7 @@ def main():
 	fig.show()
 	
 	for mask in genMaskfromLines(4):
-		ax.imshow(mask)	
+		ax.imshow(mask)
 		fig.canvas.draw()
 		ax.cla()
 		#plt.pause(0.01)

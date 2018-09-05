@@ -1,8 +1,6 @@
-import cv2
-import matplotlib.pyplot as plt
-import numpy as np
-import copy
-
+from sklearn import metrics
+from CalculateMatricies import *
+from scipy.ndimage.morphology import grey_closing
 
 class Rect:
     def __init__(self, x, y, width, height):
@@ -21,7 +19,7 @@ class Rect:
         return int(self.x + self.width), int(self.y + self.height)
 
 
-class GradiantEncoding:
+class MeanEncoding:
     def __init__(self):
         self.mean = 0
 
@@ -33,12 +31,45 @@ class GradiantEncoding:
 
     # currently min max, but might be better to use plane equation, and discard p2,p3 when sufficiently small
     def should_split(self, im):
-        im.max() - im.min() < 20
+        return (im.max() - im.min()) > 10
 
+class GradiantEncoding:
+    def __init__(self):
+        self.plane_eq = 0
+        self.value = 0
+
+    def encode(self, im):
+        n = im.shape[0]
+        if n > 1:
+            self.plane_eq = compute_gradiant(im)
+        else:
+            self.value = im[0,0]
+    def decode(self, im):
+        n = im.shape[0]
+        if n > 1:
+            im[:,:] = render_gradiant(n, self.plane_eq)
+        else:
+            im[:,:].fill(self.value)
+
+
+    def should_split(self, im):
+        n = im.shape[0]
+        if n == 1:
+            return True;
+        should_split = False
+        plane_eq = compute_gradiant(im)
+
+        rslt_im = render_gradiant(n,plane_eq)
+        v = psnr(im, rslt_im)
+        print(v)
+        if v < 80:
+            return True
+        #return im.min() == 0
+        return False
 
 
 def reached_bottom(roi):
-    if roi.width == 4 or roi.height == 4:
+    if roi.width == 2 or roi.height == 2:
         return True
     return False
 
@@ -46,7 +77,7 @@ def reached_bottom(roi):
 class QuadROILeaf:
     def __init__(self, roi):
         self.roi = roi
-        self.encoding = None
+        self.encoding = GradiantEncoding()
 
     def combine(self, child_leafs):
         x = child_leafs[0].ROI.x
@@ -73,6 +104,9 @@ class QuadROILeaf:
 
     def draw(self, im):
         cv2.rectangle(im, self.roi.tl(), self.roi.br(), 255)
+
+    def should_split(self, im):
+        return self.encoding.should_split(self.roi.sub_im(im))
 
     def decode(self, im):
         self.encoding.decode(self.roi.sub_im(im))
@@ -101,26 +135,26 @@ class Node:
         for child in self.children:
             child.draw(im)
 
+    def encode(self, im):
+        self.leaf_data.encode(im)
+        for child in self.children:
+            child.encode(im)
+
     def decode(self, im):
         self.leaf_data.decode(im)
         for child in self.children:
             child.decode(im)
 
+    def should_split(self, im):
+        return self.leaf_data.should_split(im)
+
 
 def mse(a, b):
-    return np.mean(((a - b) ** 2))
+    return metrics.mean_squared_error(a,b)
 
 
 def psnr(a, b):
     return (20*np.log10(0xffff)) - (10 * np.log10(mse(a, b)))
-
-#TODO refactor to this
-def should_split(image, parent, children):
-    pass
-
-def should_split(image, leaf):
-    return True
-
 
 class Tree:
     def __init__(self, roi):
@@ -142,12 +176,11 @@ class Tree:
         to_grow = [self.root]
         while len(to_grow):
             leaf = to_grow.pop(0)
-
-    # TODO refactor
-            if should_split(image, leaf):
+            if leaf.should_split(image):
                 leaf.grow()
+                leaf.encode(image)
                 to_grow = to_grow + leaf.children
-    #
+
 
     def bottom_up(self, image):
         # grow all the way to the bottom
@@ -165,24 +198,33 @@ class Tree:
 
     def draw(self, im):
         self.root.draw(im)
+        return im
 
     def decode(self):
         im = np.zeros((self.roi.width, self.roi.height))
-        return self.root.decode(im)
+        self.root.decode(im)
+        return im
 
 
 def main():
-    tree = Tree(Rect(0, 0, 256, 256))
-    tree.root = Node(QuadROILeaf(Rect(0, 0, 256, 256)), None)
+    tree = Tree(Rect(0, 0, 512, 512))
+    tree.root = Node(QuadROILeaf(Rect(0, 0, 512, 512)), None)
     im = cv2.imread('bgExampleDepth.tif')
+    im = cv2.resize(im[:,:,1], (512, 512), 0, 0, cv2.INTER_NEAREST)
+    #im = grey_closing(im, (5,5))
 
-    #im = cv2.resize(im, (256, 256), 0, 0, cv2.INTER_NEAREST)
-    #tree.encode(im)
-    #tree.draw(im)
-    #decompressed = tree.decode()
+    tree.encode(im)
 
-    #plt.imshow(decompressed)
-    #plt.figure()
+    print(len(tree.get_leafs()) * 32 / 1000/ 1000)
+    print(512 * 512 * 16 / 1000 / 1000)
+
+    decompressed = tree.decode()
+
+    plt.imshow(decompressed)
+    plt.figure()
+    plt.imshow(im - decompressed)
+    plt.figure()
+    im = tree.draw(im)
     plt.imshow(im)
     plt.pause(0)
 
