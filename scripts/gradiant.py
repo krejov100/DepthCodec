@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 
-def makeGradiant(n, b0 ,b1, b2):
+def make_gradiant(n, b0 ,b1, b2):
 	rslt = np.zeros((n,n))
-	for y in xrange(0, rslt.shape[0]):
-		for x in xrange(0, rslt.shape[1]):
+	for y in range(0, rslt.shape[0]):
+		for x in range(0, rslt.shape[1]):
 			rslt[y,x] = b0 + (b1*x) + (b2*y)
 	return rslt
 
@@ -13,8 +13,8 @@ def makeGradiant(n, b0 ,b1, b2):
 
 def ABmask(n, p1, p2):
 	rslt = np.zeros((n,n))
-	for y in xrange(0, rslt.shape[0]):
-		for x in xrange(0, rslt.shape[1]):
+	for y in range(0, rslt.shape[0]):
+		for x in range(0, rslt.shape[1]):
 			rslt[y,x] = leftOrRight(n, p1, p2)		
 		
 #  is p3 on the left of a line connecting p1 and p2
@@ -95,8 +95,8 @@ def left(n):
 # returns an image that is masked using a line P Q, 0 if right of the line, 1 if left
 def maskImageUsingLine(n, p1, p2):
 	rslt = np.zeros((n,n))
-	for y in xrange(0, n):
-		for x in xrange(0, n):
+	for y in range(0, n):
+		for x in range(0, n):
 			rslt[y,x] = isPleftOfLine(p1, p2, [x,y])
 	return rslt
 
@@ -173,7 +173,7 @@ def main():
 	fig, ax = plt.subplots()
 	fig.show()
 	
-	for mask in genMaskfromLines(16):
+	for mask in genMaskfromLines(4):
 		ax.imshow(mask)	
 		fig.canvas.draw()
 		ax.cla()

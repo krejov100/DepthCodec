@@ -1,4 +1,4 @@
-import gradiant
+from gradiant import *
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def main():
 	n = 100
 	noise = np.random.normal(20, 10,(n,n))
-	grad = makeGradiant(n,0,100,100) + noise
+	grad = make_gradiant(n,0,100,100) + noise
 	plt.imshow(grad)
 
 

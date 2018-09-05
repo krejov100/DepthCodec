@@ -1,46 +1,65 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from gradiant import *
+import cv2
+
 
 def v(n):
 	"""compute u value of matrix"""
-	return (n**2)*(n+1)/2
+	return ((n**2)*(n+1))/2
 
 
 def u(n):
 	"""compute v value of matrix"""
-	return (n**2)*((n+1)**2)/4
+	return ((n**2)*(n+1)**2)/4
+
 
 def t(n):
-	return (n**2)*(n+1)*(2*n+1)/6
+	return ((n**2)*(n+1)*(2*n+1))/6
 
-def inverseLh(n):
-	return np.matrix([[t(n), u(n), v(n)],[u(n), t(n), v(n)],[v(n), v(n), n**2]]).I
+
+def inverse_lh(n):
+	return np.matrix([[t(n), u(n), v(n)], [u(n), t(n), v(n)], [v(n), v(n), n**2]]).I
 
 def rh(im):
 	vals = np.zeros(3)
-	for y in xrange(0, im.shape[0]):
-		for x in xrange(0, im.shape[1]):
-			vals[0] += (x * im[y,x])
-			vals[1] += (y * im[y,x])
-			vals[2] += im[y,x]
-	return vals;
+	for y in range(0, im.shape[0]):
+		for x in range(0, im.shape[1]):
+			vals[0] += x * im[y, x]
+			vals[1] += y * im[y, x]
+			vals[2] += im[y, x]
+	return vals
+
+def solve_gradiant(im):
+	n = im.shape[0]
+	return rh(im - np.mean(im)) * inverse_lh(n), np.mean(im)
+
+def im_from_gradiant(n, bs):
+	return make_gradiant(n, bs[0][0, 2] + bs[0][0, 0] + bs[0][0, 1], bs[0][0, 0], bs[0][0, 1]) + bs[1]
 
 def main():
-	n = 100
-	noise = np.random.normal(20, 10,(n,n))
-	grad = makeGradiant(n,0,100,100) + noise
-	plt.imshow(grad)
+	n = 200
 
+	noise = np.random.normal(0, 40, (n, n))
+	im = cv2.imread('bgExampleDepth.tif')
+	grad = make_gradiant(n, 400, 0.2, 0.343) + noise
+	grad = im[750:950,100:300,0]
 
 	print("rh" + str(rh(grad)))
-	bs =  rh(grad)* inverseLh(n)
-	print("bs"+ str(bs))
+	bs = solve_gradiant(grad)
+	print("bs" + str(bs))
 
 	plt.figure()
-	grad = makeGradiant(n,bs[0,2],bs[0,0],bs[0,1])
-	plt.imshow(grad)
+	grad2 = im_from_gradiant(n, bs)
+
+	print(grad.min())
+	print(grad.max())
+	print(grad2.min())
+	print(grad2.max())
+	plt.imshow(np.vstack([grad, grad2]))
 
 	plt.pause(0)
+
+
 if __name__ == "__main__":
-    main()
+	main()
