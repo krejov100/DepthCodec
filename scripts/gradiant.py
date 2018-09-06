@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
+import cv2
+import copy
+from CalculateMatricies import *
+from Tree import *
 
 def make_gradiant(n, b0 ,b1, b2):
 	rslt = np.zeros((n,n))
@@ -110,6 +114,9 @@ def appendMask(array, mask):
 	for alreadyin in array:
 		if (alreadyin == mask).all():
 			return array
+		#line creates a region that is tool small
+		if(mask.sum() < 4 or (1-mask).sum() < 4):
+			return array
 	array.append(mask)
 	return array	
 	
@@ -155,25 +162,84 @@ def genMaskfromLines(n):
 		for b in leftCoords:
 			count += 1
 			masks = appendMask(masks, maskImageUsingLine(n, a, b))	
-	print(count)
-	print(len(masks))
 	return masks
 
 
 #TODO actualy test
 def testOuterIndexToXY():
-	coords = getPerimeterCoord(4)
+	coords = getPerimeterCoord(8)
 	count = 0
-	for a in itertools.combinations(coords,4):
+	for a in itertools.combinations(coords,8):
 		count += 1
 	print(count)
+
+
+masks = genMaskfromLines(8)
+
+def masked_mean_center(im, mask):
+	im_with_nan = copy.deepcopy(im)
+	im_with_nan[mask == 0] = np.nan
+	mean = np.nanmean(im_with_nan)
+	return (mask*im) + ((1-mask)*mean)
+
+def find_gradiant_split(im):
+	# 7x7 because there are less then 255 line masks
+	split_gradient_small = cv2.resize(im, (8, 8), 0, 0, cv2.INTER_NEAREST)
+
+	fig, ax = plt.subplots()
+	fig.show()
+
+	errors = []
+	index = 0
+	best_score = 0
+	best_result = []
+	for mask in masks[1:]:
+		index += 1
+		m = mask
+		# compute gradient for mask
+		gradient = masked_compute_gradiant(masked_mean_center(split_gradient_small, m), m)
+		rendered_gradient = render_gradiant(8, gradient)
+
+		# compute gradient for inverse mask
+		m = 1-mask
+		gradient = masked_compute_gradiant(masked_mean_center(split_gradient_small, m), m)
+		rendered_gradient2 = render_gradiant(8, gradient)
+
+		rslt = (rendered_gradient2 * m) + (rendered_gradient * (1-m))
+
+		psnr_val = psnr(split_gradient_small, rslt)
+		errors.append(psnr_val )
+
+		if psnr_val > best_score:
+			best_result = np.vstack((split_gradient_small, m, rslt, split_gradient_small-rslt))
+			best_score = psnr_val
+	best_result = cv2.resize(best_result, (50,50), 0, 0)
+
+
+	plt.imshow(best_result)
+
+	fig.canvas.draw()
+	plt.waitforbuttonpress()
+	ax.cla()
+	plt.close(fig)
+
 
 def main():
 
 	fig, ax = plt.subplots()
 	fig.show()
-	
-	for mask in genMaskfromLines(4):
+
+	for i in range(0,241,4):
+		print(i)
+		test_50_mask = maskImageUsingLine(50, (0,50), (50,10))
+		#					    one gradiant 											second gradiant
+		#test_gradient = (masks[i] * make_gradiant(8,10, 0.3,-0.5))  +  ((1- masks[i]) * make_gradiant(8, 40, 0.1, 0.4))
+		test_gradient = (test_50_mask * make_gradiant(50, 10, 0.3, -0.5)) + ((1 - test_50_mask) * make_gradiant(50, 40, 0.1, 0.4))
+
+		find_gradiant_split(test_gradient)
+
+	print(len(genMaskfromLines(8)))
+	for mask in genMaskfromLines(8):
 		ax.imshow(mask)
 		fig.canvas.draw()
 		ax.cla()

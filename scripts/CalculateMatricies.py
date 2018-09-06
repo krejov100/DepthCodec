@@ -30,10 +30,25 @@ def rh(im):
 			vals[2] += im[y, x]
 	return vals
 
+def masked_rh(im, mask):
+	vals = np.zeros(3)
+	for y in range(0, im.shape[0]):
+		for x in range(0, im.shape[1]):
+			if mask[y,x] != 0:
+				vals[0] += x * im[y, x]
+				vals[1] += y * im[y, x]
+			vals[2] += im[y, x]
+	return vals
+
 def compute_gradiant(im):
 	n = im.shape[0]
 	print(n)
 	return rh(im - np.mean(im)) * inverse_lh(n), np.mean(im)
+
+def masked_compute_gradiant(im, mask):
+	n = im.shape[0]
+	print(n)
+	return masked_rh(im - np.mean(im), mask) * inverse_lh(n), np.mean(im)
 
 def render_gradiant(n, bs):
 	return make_gradiant(n, bs[0][0, 2] + bs[0][0, 0] + bs[0][0, 1], bs[0][0, 0], bs[0][0, 1]) + bs[1]
