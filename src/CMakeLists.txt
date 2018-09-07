@@ -9,10 +9,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "7.3")
         message(FATAL_ERROR "Insufficient gcc version")
     endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "your.required.msvc.version")
-        message(FATAL_ERROR "Insufficient msvc version")
-    endif()
 endif()
 
 if (USE_SUPERBUILD)
@@ -34,7 +30,6 @@ set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 enable_testing()
-message(STATUS test)
 add_subdirectory (modules)
 
 

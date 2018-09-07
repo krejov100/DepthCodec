@@ -1,9 +1,7 @@
 //
 // Created by philip on 8/6/18.
 //
-
-#ifndef CAPTURE_TRIANGULATION_NAMEDTIMER_H
-#define CAPTURE_TRIANGULATION_NAMEDTIMER_H
+#pragma once
 
 #include <string>
 #include <boost/timer.hpp>
@@ -17,8 +15,7 @@ public:
     NamedTimer(){}
     NamedTimer(const std::string& name);
 
-    void endTimer() noexcept;
+    void endTimer();
     void printTimer(std::ostream& ostream) const;
-    double getTime() const noexcept;
+    double getTime() const;
 };
-#endif //CAPTURE_TRIANGULATION_NAMEDTIMER_H

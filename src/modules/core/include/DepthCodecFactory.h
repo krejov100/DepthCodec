@@ -2,9 +2,7 @@
 // Created by philip on 8/9/18.
 //
 
-#ifndef DEPTHCODEC_DEPTHCOMPRESSIONFACTORY_H
-#define DEPTHCODEC_DEPTHCOMPRESSIONFACTORY_H
-
+#pragma once
 #include "IDepthCodec.h"
 #include "Factory.h"
 
@@ -20,5 +18,3 @@ public:
     virtual std::shared_ptr<IDepthCodec> construct();
     static po::options_description getOptions();
 };
-
-#endif //DEPTHCODEC_DEPTHCOMPRESSIONFACTORY_H
