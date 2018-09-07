@@ -9,7 +9,7 @@
 #include <opencv2/core/mat.hpp>
 #include "NodeAddress.h"
 #include "RollingQuadTree.h"
-#include "MultipleQuadTree.h"
+#include "TiledCodec.h"
 
 class AbsDiffPolicy{
     short mThresh;

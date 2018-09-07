@@ -12,12 +12,11 @@
 /// it is a delegating factory th
 class DepthCodecFactory: public Factory{
     /// string to sub factory map
-    std::map<std::string, std::function<std::shared_ptr<IDepthCodec>()>> mSubCodecFactories;
-    void registerSubFactory(std::string name, DepthCodecFactory* childFactory);
+    std::map<std::string, std::shared_ptr<DepthCodecFactory>> mSubCodecFactories;
 
 public:
     DepthCodecFactory(const po::variables_map& options);
-
+    void registerSubFactory(std::string name, std::shared_ptr<DepthCodecFactory> childFactory);
     virtual std::shared_ptr<IDepthCodec> construct();
     static po::options_description getOptions();
 };

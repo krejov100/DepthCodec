@@ -9,41 +9,58 @@
 #include <memory>
 #include "DepthCodecFactory.h"
 #include "cvHelpers.h"
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 /// class that holds multiple codecs for a single image
-class TiledCodecs: public IDepthCodec{
+class TiledCodec: public IDepthCodec{
     std::vector<std::shared_ptr<IDepthCodec>> subCodecs;
-    DepthCodecFactory& mFactory;
+    std::shared_ptr<DepthCodecFactory> mFactory;
     cv::Size mImageSize;
 
-    TiledCodecs(DepthCodecFactory &factory):mFactory(factory){};
+protected:
+    TiledCodec(){};
+public:
+    TiledCodec(std::shared_ptr<DepthCodecFactory> factory):mFactory(factory){};
 
     virtual CompressedData compress(const cv::Mat& depthImage){
-        CompressedData rslt;
-
         mImageSize = depthImage.size();
-
-        auto exampleCodec = mFactory.construct();
+        auto exampleCodec = mFactory->construct();
         cv::Size maxTreeSize = exampleCodec->getOptimalSize ();
-
         for(int y = 0; y < mImageSize.height; y+=maxTreeSize.height){
             for(int x = 0; x < mImageSize.width; x+=maxTreeSize.width){
                 // use the max size of the tree for the width and height, or what remains of the image
                 size_t width = std::min(maxTreeSize.width ,  mImageSize.width - x);
                 size_t height = std::min(maxTreeSize.height , mImageSize.height - y);
 
-                subCodecs.push_back(mFactory.construct());
-
-                cv::Mat subRegion = depthImage(cv::Range(x, x + width), cv::Range(y, y + height));
-                //subtree->parseImage(ROI);
-                //addTree(x, y, subtree);
+                auto codec = mFactory->construct();
+                cv::Rect subRegion(x, y, width, height);
+                cv::Mat subMat = depthImage(subRegion);
+                codec->compress(subMat);
+                subCodecs.push_back(codec);
             }
         }
+        BoostMarshaller<TiledCodec> marshaller;
+        return marshaller.marshall(*this);
     }
 
     virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
 
     }
+
+    virtual cv::Size getOptimalSize(){
+        return cv::Size(3840, 2160);
+    }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & mImageSize;
+        ar & subCodecs;
+    }
+
+    friend class boost::serialization::access;
+    friend class BoostMarshaller<TiledCodec>;
 };
 
 

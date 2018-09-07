@@ -3,7 +3,7 @@
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
 message(STATUS BOOST_ROOT ${BOOST_ROOT})
-find_package (Boost 1.67.0 REQUIRED system program_options log)
+find_package (Boost 1.67.0 REQUIRED system program_options serialization log)
 ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
 
 message(STATUS OpenCV_DIR ${OpenCV_DIR})
@@ -16,7 +16,7 @@ add_library(Core
 		src/NamedTimer.cpp
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		src/DelegatingFactory.cpp include/cvHelpers.h include/Gradiant.h include/ceMatrix.h)
+		src/DepthCodecFactory.cpp)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}

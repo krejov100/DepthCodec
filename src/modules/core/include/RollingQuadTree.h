@@ -52,8 +52,6 @@ using DataStream = CompressedData;
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class RollingQuadTree: public IDepthCodec, public QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>{
-    size_t mImageWidth;
-    size_t mImageHeight;
 protected:
     void addLeafThenPrune(ADDRESS_TYPE a, const LEAF_DATA_TYPE& leafData){
         // add new cell to tree
@@ -81,10 +79,8 @@ public:
     //TODO TEST at compile time the check that the leaf can represent the cell size
     RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(split){};
 
-    CompressedData compress(const cv::Mat & im)
+    virtual CompressedData compress(const cv::Mat & im)
     {
-        mImageWidth = im.cols;
-        mImageHeight = im.rows;
         size_t maxTreeDepth = maxDepth<ADDRESS_TYPE>();
         BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< maxTreeDepth;
         for (int y = 0; y < im.rows; y++) {
@@ -100,7 +96,7 @@ public:
         return marshaller.marshall(*this);
     }
 
-    void decompress(const CompressedData& data, cv::Mat& depthImage){
+    virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
         for(auto leaf : this->tree) {
             auto decodedLeaf = this->decodeAddress(leaf.first);
             int x = std::get<0>(decodedLeaf);
@@ -113,7 +109,7 @@ public:
         }
     }
 
-    cv::Size getOptimalSize(){
+    virtual cv::Size getOptimalSize(){
         return cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
     }
 
@@ -121,8 +117,6 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & boost::serialization::base_object<QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>(*this);
-        ar &mImageWidth;
-        ar &mImageHeight;
     }
 
     friend class boost::serialization::access;

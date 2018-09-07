@@ -54,19 +54,19 @@ public:
         rslt.compressionTimer.endTimer();
 
         /// Evaluate CompressedData
-        rslt.originalSizeInBytes = compressedData.size();
+        rslt.compressedSizeInBytes = compressedData.size();
 
         /// Evaluate decompression
         rslt.decompressionTimer = NamedTimer("Decompression");
         DATA_TYPE decompressed;
         mCodec->decompress(compressedData, decompressed);
-        rslt.decompressionTimer.endTimer();
+        //rslt.decompressionTimer.endTimer();
 
         /// Evaluate lossyness
-        rslt.meanSquaredError = MSE(example, decompressed);
-        rslt.peakSignalToNoise = PSNR(example, decompressed);
-        if(showArtifacts)
-            showCompressionArtifacts(example, decompressed);
+        //rslt.meanSquaredError = MSE(example, decompressed);
+        //rslt.peakSignalToNoise = PSNR(example, decompressed);
+        //if(showArtifacts)
+         //   showCompressionArtifacts(example, decompressed);
 
         return rslt;
     };

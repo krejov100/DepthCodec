@@ -20,5 +20,11 @@ std::istream& operator>>(std::istream& is, cv::Size& size) {
     return is;
 }
 
-
+namespace cv {
+    template<class Archive>
+    inline void serialize(Archive &ar, cv::Size &t, const unsigned int file_version) {
+        ar & t.width;
+        ar & t.height;
+    }
+}
 #endif //DEPTHCODEC_CVHELPERS_H
