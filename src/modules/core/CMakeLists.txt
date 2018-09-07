@@ -2,56 +2,69 @@
 #example slide 24
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
+set(Boost_USE_STATIC_LIBS ON)
 message(STATUS BOOST_ROOT ${BOOST_ROOT})
-find_package (Boost 1.67.0 REQUIRED system program_options log)
-ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
+find_package (Boost REQUIRED system program_options log serialization)
+#ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
 
 message(STATUS OpenCV_DIR ${OpenCV_DIR})
 find_package (OpenCV 3.4.1 REQUIRED)
 
 message(STATUS ${_opencv_args})
 
-add_library(Core
-		src/CodecEvalFramework.cpp
+add_library(Core STATIC
+		include/cvHelpers.h 
+		include/Gradiant.h 
+		include/BoostMarshaller.h
+		include/CodecEvalFramework.h
+		include/CompressedData.h
+		include/DepthCodecFactory.h
+		include/Factory.h
+		include/IDepthCodec.h
+		include/MultipleQuadTree.h
+		include/NamedTimer.h
+		include/NodeAddress.h
+		include/QuadTreeCodec.h
+		include/QuadTreeCodecFactory.h
+		include/QuadTreeTypes.h
+		include/RollingQuadTree.h
 		src/NamedTimer.cpp
+		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		src/DelegatingFactory.cpp include/cvHelpers.h include/Gradiant.h include/ceMatrix.h)
+	)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-)
-
-message(STATUS ${Boost_LIBRARIES})
+	)
 
 target_link_libraries(Core
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
-		-lboost_system
-		)
+	)
 
-install(TARGETS Core EXPORT CoreTargets
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		RUNTIME DESTINATION bin
-		INCLUDES DESTINATION include
-		)
+#install(TARGETS Core EXPORT CoreTargets
+#		LIBRARY DESTINATION lib
+#		ARCHIVE DESTINATION lib
+#		RUNTIME DESTINATION bin
+#		INCLUDES DESTINATION include
+#	)
 
-install(EXPORT CoreTargets
-		FILE CoreTargets.cmake
-		DESTINATION lib/cmake/Core
-		)
+#install(EXPORT CoreTargets
+#		FILE CoreTargets.cmake
+#		DESTINATION lib/cmake/Core
+#	)
 
 add_executable(TestCore test/TestCore.cpp)
 
 target_include_directories(TestCore
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		PUBLIC Core
-		)
+	)
 target_link_libraries(TestCore
 		PUBLIC Core
-		)
+	)
 
 add_test(TestCore TestCore)

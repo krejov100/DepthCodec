@@ -9,7 +9,6 @@
 #include "QuadTreeTypes.h"
 #include "opencv2/core/version.hpp"
 #include "Gradiant.h"
-#include "ceMatrix.h"
 
 #define BOOST_LOG_DYN_LINK 1
 
@@ -128,7 +127,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
     CompressedData data = t.compress(shortMat);
 
-    //cv::Mat decompressed(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
+    cv::Mat decompressed(1024, 720, CV_16UC1, cv::Scalar(0));
     t.decompress(data, decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
@@ -178,17 +177,14 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
     boost::program_options::variables_map compressionOptions;
     compressionOptions.insert(std::make_pair("CodecType",po::variable_value(std::string("QuadTree"), false)));
     po::notify(compressionOptions);
-    auto codec = DepthCodecFactory::construct(compressionOptions);
+	auto factory = std::make_shared<DepthCodecFactory>(compressionOptions);
+    auto codec = factory->construct();
 
     CodecEvalFramework<cv::Mat, IDepthCodec> testFramework(codec.get());
     auto rslt = testFramework.evaluateCodecOnExample(shortMat, true);
     rslt.printPerformance(std::cout);
 
     cv::waitKey(0);
-}
-
-BOOST_AUTO_TEST_CASE(TestCEmatrixMul){
-    test_multiply();
 }
 
 BOOST_AUTO_TEST_CASE(TestCompressionFactory){

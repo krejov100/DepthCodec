@@ -1,15 +1,13 @@
 //testFramework
 // Created by philip on 8/9/18.
 //
-
-#include <DepthCodecFactory.h>
+#include "DepthCodecFactory.h"
+#include <map>
 #include "IDepthCodec.h"
 #include "NodeAddress.h"
-#include <map>
-#include <QuadTreeCodecFactory.h>
+#include "QuadTreeCodecFactory.h"
 
-DepthCodecFactory::DepthCodecFactory(const po::variables_map& options):Factory(options){
-}
+DepthCodecFactory::DepthCodecFactory(const po::variables_map& options):Factory(options) {}
 
 void DepthCodecFactory::registerSubFactory(std::string name, DepthCodecFactory* childFactory)
 {

@@ -2,9 +2,7 @@
 // Created by philip on 8/2/18.
 //
 
-#ifndef CAPTURE_TRIANGULATION_COMPRESSION_H
-#define CAPTURE_TRIANGULATION_COMPRESSION_H
-
+#pragma once
 #include <vector>
 #include "NamedTimer.h"
 #include "opencv2/opencv.hpp"
@@ -12,8 +10,6 @@
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
-
-#endif //CAPTURE_TRIANGULATION_COMPRESSION_H
 
 /// template to IMAGE_TYPE with concept of image
 double MSE(const cv::Mat& original, const cv::Mat& transformed);

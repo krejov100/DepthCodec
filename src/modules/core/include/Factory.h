@@ -15,7 +15,7 @@ protected:
     po::variables_map mOptions;
 public:
     Factory(const po::variables_map& options): mOptions(options){};
-    virtual void reconfigure(const po::variables_map& options);
+	virtual void reconfigure(const po::variables_map& options) { mOptions = options; };
 };
 
 #endif //DEPTHCODEC_FACTORY_H
