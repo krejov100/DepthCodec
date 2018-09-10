@@ -61,15 +61,14 @@ class GradiantEncoding:
 
         rslt_im = render_gradiant(n,plane_eq)
         v = psnr(im, rslt_im)
-        print(v)
         if v < 80:
             return True
-        #return im.min() == 0
-        return False
+        return im.min() == 0
+        #return False
 
 
 def reached_bottom(roi):
-    if roi.width == 2 or roi.height == 2:
+    if roi.width == 1 or roi.height == 1:
         return True
     return False
 
@@ -191,8 +190,6 @@ class Tree:
             leaf.grow()
             to_grow = to_grow + leaf.children
 
-        print(len(self.get_leafs()))
-
     def encode(self, image):
         self.top_down(image)
 
@@ -210,19 +207,18 @@ def main():
     tree = Tree(Rect(0, 0, 512, 512))
     tree.root = Node(QuadROILeaf(Rect(0, 0, 512, 512)), None)
     im = cv2.imread('bgExampleDepth.tif')
+    original_size = im.shape
     im = cv2.resize(im[:,:,1], (512, 512), 0, 0, cv2.INTER_NEAREST)
     #im = grey_closing(im, (5,5))
-
     tree.encode(im)
-
     print(len(tree.get_leafs()) * 32 / 1000/ 1000)
     print(512 * 512 * 16 / 1000 / 1000)
-
     decompressed = tree.decode()
+    plt.imshow(im - decompressed)
+    plt.figure()
+    decompressed = cv2.resize(decompressed, (original_size[1], original_size[0]), 0, 0, cv2.INTER_NEAREST)
 
     plt.imshow(decompressed)
-    plt.figure()
-    plt.imshow(im - decompressed)
     plt.figure()
     im = tree.draw(im)
     plt.imshow(im)

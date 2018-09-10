@@ -1,6 +1,12 @@
 # Depth Codec
 This repo looks to perform comparision between differing depth codecs, on a veriaty of depth data captured using RealSense D415 and D435.
 
+# to test
+16bit normal ie 8bit x grad  8bit y grad
+addaptive snr for close and long range
+fix flying pixels in python
+high speed decoder for practical use
+
 ## System Overview
 There are two major components to this project, the compression methods and the evaluation framework.
 The compression method is written to use a consistent interface allowing the evaluation framework to compare methods. 
