@@ -7,6 +7,7 @@
 #include "NamedTimer.h"
 #include "opencv2/opencv.hpp"
 #include "CompressedData.h"
+#include "iostream"
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
@@ -46,11 +47,13 @@ public:
 
         /// Evaluate Compression
         rslt.compressionTimer = NamedTimer("Compression");
-        CompressedData compressedData = mCodec->compress(example);
+        std::stringstream compressedData;
+        mCodec->compress(compressedData, example);
         rslt.compressionTimer.endTimer();
 
-        /// Evaluate CompressedData
-        rslt.compressedSizeInBytes = compressedData.size();
+        /// Evaluate CompressedData https://stackoverflow.com/questions/4432793/size-of-stringstream
+        compressedData.seekg(0, std::ios::end);
+        rslt.compressedSizeInBytes = compressedData.tellg();
 
         /// Evaluate decompression
         rslt.decompressionTimer = NamedTimer("Decompression");

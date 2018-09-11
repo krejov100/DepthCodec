@@ -75,12 +75,6 @@ public:
     static size_t getMaxDimensionLength(){
         return maxDimensionLength<ADDRESS_TYPE>();
     }
-
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & tree;
-    }
 };
 
 

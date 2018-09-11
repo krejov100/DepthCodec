@@ -9,4 +9,6 @@
 
 using CompressedData = typename std::vector<char>;
 
+
+
 #endif //DEPTHCODEC_COMPRESSEDDATA_H

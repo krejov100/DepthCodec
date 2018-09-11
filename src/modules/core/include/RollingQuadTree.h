@@ -11,7 +11,6 @@
 #include "IDepthCodec.h"
 
 using DataStream = CompressedData;
-#include "BoostMarshaller.h"
 #include <boost/serialization/map.hpp>
 
 /*
@@ -79,7 +78,7 @@ public:
     //TODO TEST at compile time the check that the leaf can represent the cell size
     RollingQuadTree(const SPLIT_POLICY_TYPE& split):QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>(split){};
 
-    virtual CompressedData compress(const cv::Mat & im)
+    virtual void compress(std::ostream& stream, const cv::Mat & im)
     {
         size_t maxTreeDepth = maxDepth<ADDRESS_TYPE>();
         BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< maxTreeDepth;
@@ -91,12 +90,9 @@ public:
                 addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
             }
         }
-
-        BoostMarshaller<RollingQuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>> marshaller;
-        return marshaller.marshall(*this);
     }
 
-    virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
+    virtual void decompress(std::istream& stream, cv::Mat& depthImage){
         for(auto leaf : this->tree) {
             auto decodedLeaf = this->decodeAddress(leaf.first);
             int x = std::get<0>(decodedLeaf);
@@ -112,15 +108,6 @@ public:
     virtual cv::Size getOptimalSize(){
         return cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
     }
-
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & boost::serialization::base_object<QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>(*this);
-    }
-
-    friend class boost::serialization::access;
-    friend class BoostMarshaller<RollingQuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>;
 };
 
 

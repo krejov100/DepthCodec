@@ -4,8 +4,8 @@
 
 set(Boost_USE_STATIC_LIBS ON)
 message(STATUS BOOST_ROOT ${BOOST_ROOT})
-find_package (Boost REQUIRED system program_options log serialization)
-#ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
+find_package (Boost COMPONENTS system program_options log serialization REQUIRED)
+ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
 
 message(STATUS OpenCV_DIR ${OpenCV_DIR})
 find_package (OpenCV 3.4.1 REQUIRED)
@@ -13,18 +13,15 @@ find_package (OpenCV 3.4.1 REQUIRED)
 message(STATUS ${_opencv_args})
 
 add_library(Core STATIC
-		include/cvHelpers.h 
-		include/Gradiant.h 
-		include/BoostMarshaller.h
+		include/ReadWrite.h
 		include/CodecEvalFramework.h
 		include/CompressedData.h
 		include/DepthCodecFactory.h
 		include/Factory.h
 		include/IDepthCodec.h
-		include/MultipleQuadTree.h
+		include/TiledCodec.h
 		include/NamedTimer.h
 		include/NodeAddress.h
-		include/QuadTreeCodec.h
 		include/QuadTreeCodecFactory.h
 		include/QuadTreeTypes.h
 		include/RollingQuadTree.h
@@ -64,6 +61,7 @@ target_include_directories(TestCore
 		PUBLIC Core
 	)
 target_link_libraries(TestCore
+		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC Core
 	)
 

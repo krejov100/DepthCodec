@@ -9,14 +9,10 @@
 #include "QuadTreeTypes.h"
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
+#include "ReadWrite.h"
 
 #define BOOST_LOG_DYN_LINK 1
 
-#include <boost/serialization/export.hpp>
-
-BOOST_CLASS_EXPORT(IDepthCodec);
-BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
 
 BOOST_AUTO_TEST_CASE(TestTest){
     std::cout << "Using OpenCV "
@@ -131,10 +127,11 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
 
 
     RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
-    CompressedData data = t.compress(shortMat);
+    std::stringstream compressedData;
+    t.compress(compressedData, shortMat);
 
     cv::Mat decompressed;//(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
-    t.decompress(data, decompressed);
+    t.decompress(compressedData, decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
     std::vector<uchar> decompressedVec(decompressed.datastart,  decompressed.dataend);
@@ -152,14 +149,13 @@ class MockLossyCodec{
 public:
     MockLossyCodec(){};
 
-    CompressedData compress(const cv::Mat& data) const {
-        original = data;
+    void compress(std::ostream& stream, const cv::Mat& data) const {
+        write(stream, data);
         BOOST_LOG_TRIVIAL(info) << "Compressing Data";
-        return CompressedData();
     };
 
-    void decompress(const CompressedData& compressedData, cv::Mat& data)const {
-        data = original;
+    void decompress(std::istream& stream, cv::Mat& data)const {
+        read(stream, data);
     };
 };
 

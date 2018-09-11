@@ -45,12 +45,6 @@ public:
     }
 
     unsigned short decodedValue(){return max;};
-
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & max;
-    }
 };
 
 using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy>;

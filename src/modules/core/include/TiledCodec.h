@@ -8,7 +8,7 @@
 
 #include <memory>
 #include "DepthCodecFactory.h"
-#include "cvHelpers.h"
+#include "ReadWrite.h"
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 
@@ -23,7 +23,7 @@ protected:
 public:
     TiledCodec(std::shared_ptr<DepthCodecFactory> factory):mFactory(factory){};
 
-    virtual CompressedData compress(const cv::Mat& depthImage){
+    virtual void compress(const cv::Mat& depthImage){
         mImageSize = depthImage.size();
         auto exampleCodec = mFactory->construct();
         cv::Size maxTreeSize = exampleCodec->getOptimalSize ();
@@ -40,27 +40,20 @@ public:
                 subCodecs.push_back(codec);
             }
         }
-        BoostMarshaller<TiledCodec> marshaller;
-        return marshaller.marshall(*this);
     }
 
-    virtual void decompress(const CompressedData& data, cv::Mat& depthImage){
+    virtual void decompress(std::istream &stream, cv::Mat& depthImage){
 
+    }
+
+    void writeCompressedData(std::ostream& os){
+        write(os, mImageSize);
+        write(os, subCodecs);
     }
 
     virtual cv::Size getOptimalSize(){
         return cv::Size(3840, 2160);
     }
-
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & mImageSize;
-        ar & subCodecs;
-    }
-
-    friend class boost::serialization::access;
-    friend class BoostMarshaller<TiledCodec>;
 };
 
 
