@@ -34,24 +34,32 @@ public:
                 auto codec = mFactory->construct();
                 cv::Rect subRegion(x, y, width, height);
                 cv::Mat subMat = depthImage(subRegion);
+
                 codec->compress(subMat);
+
                 subCodecs.push_back(codec);
             }
         }
     }
 
-    virtual void decompress(std::istream &stream, cv::Mat& depthImage){
+    virtual void decompress(cv::Mat& depthImage){
 
     }
 
-    void writeCompressedData(std::ostream& os){
-        write(os, mImageSize);
-        write(os, subCodecs);
-    }
 
     virtual cv::Size getOptimalSize(){
         return cv::Size(3840, 2160);
     }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) const
+    {
+        // note, version is always the latest when saving
+        ar & mImageSize;
+        ar & subCodecs;
+    }
+
+    friend class boost::serialization::access;
 };
 
 

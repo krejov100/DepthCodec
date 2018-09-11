@@ -11,6 +11,19 @@ high speed decoder for practical use
 There are two major components to this project, the compression methods and the evaluation framework.
 The compression method is written to use a consistent interface allowing the evaluation framework to compare methods. 
 
+## Polymorphism
+Run time polymorphism is used at the image level of compression, reducing the overhead in runtime polymorphism.
+Compile time polymorphism is handled using templated classes, allowing flexibility.
+
+### Serialization
+Serialization is handled using a combination of boost serialisation for classes that are handled polymorphicly.
+Classes that are templated, implimenting the inteface:
+
+```cpp
+    virtual void writeCompressedData(std::ostream& out) = 0;
+    virtual void readCompressedData(std::istream& in) = 0;
+```
+
 ## Representations of 3D
 There are a number of ways in which 3D data can be represented and impact on storage/transmission performance.
 For example, when transmitting a planer surface its is much more compact to represent it using mesh or planer primitives then depth values.  

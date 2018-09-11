@@ -10,6 +10,7 @@
 #include <map>
 #include <bitset>
 #include "Tree.h"
+#include <boost/serialization/base_object.hpp>
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
 class QuadTree : private SPLIT_POLICY_TYPE {
@@ -56,6 +57,16 @@ public:
     static size_t getMaxDimensionLength(){
         return maxDimensionLength<ADDRESS_TYPE>();
     }
+
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) const
+    {
+        // note, version is always the latest when saving
+        ar & tree;
+    }
+
+    friend class boost::serialization::access;
 };
 
 

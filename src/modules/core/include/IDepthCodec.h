@@ -12,13 +12,19 @@
 // A method for performing compression
 class IDepthCodec{
 public:
-    virtual void compress(std::ostream& stream, const cv::Mat& depthImage) = 0;
-    virtual void decompress(std::istream& stream, cv::Mat& depthImage) = 0;
+    IDepthCodec() = default;
 
-    virtual void writeCompressedData(std::ostream& out) = 0
-    virtual void readCompressedData(std::istream& in) = 0
+    virtual void compress(const cv::Mat& depthImage) = 0;
+    virtual void decompress(cv::Mat& depthImage) = 0;
 
     virtual cv::Size getOptimalSize() = 0;
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version) const
+    {
+    }
+
+    friend class boost::serialization::access;
 };
 
 #endif //DEPTHCODEC_COMPRESSIONQUADTREE_H

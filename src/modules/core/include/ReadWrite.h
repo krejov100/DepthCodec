@@ -5,53 +5,57 @@
 #ifndef DEPTHCODEC_CVHELPERS_H
 #define DEPTHCODEC_CVHELPERS_H
 
-#include <opencv2/core/types.hpp>
-#include "iostream"
+#include <opencv2/opencv.hpp>
+#include <boost/serialization/split_free.hpp>
+#include <boost/serialization/vector.hpp>
 
-inline void write(std::ostream &os, const cv::Size &size) {
-    os << size.width << size.height;
+/// This blog post also discusses compression of streams which could be great to do but not here!
+///https://cheind.wordpress.com/2011/12/06/serialization-of-cvmat-objects-using-boost/
+namespace boost {
+    namespace serialization {
+        template<class Archive>
+        void serialize(Archive & ar, cv::Size& size, const unsigned int version)
+        {
+            ar & size.width;
+            ar & size.height;
+        }
+
+        BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat)
+
+        /// Save serialization support for cv::Mat
+        template<class Archive>
+        void save(Archive & ar, const ::cv::Mat& m, const unsigned int version)
+        {
+            size_t elem_size = m.elemSize();
+            size_t elem_type = m.type();
+
+            ar & m.cols;
+            ar & m.rows;
+            ar & elem_size;
+            ar & elem_type;
+
+            const size_t data_size = m.cols * m.rows * elem_size;
+            ar & make_array(m.ptr(), data_size);
+        }
+
+        /// Load serialization support for cv::Mat
+        template<class Archive>
+        void load(Archive & ar, ::cv::Mat& m, const unsigned int version)
+        {
+            int cols, rows;
+            size_t elem_size, elem_type;
+
+            ar & cols;
+            ar & rows;
+            ar & elem_size;
+            ar & elem_type;
+
+            m.create(rows, cols, elem_type);
+
+            size_t data_size = m.cols * m.rows * elem_size;
+            ar & make_array(m.ptr(), data_size);
+        }
+
+    }
 }
-
-
-inline void read(std::istream &is, cv::Size &size) {
-    is >> size.width >> size.height;
-}
-
-inline void write(std::ostream &os, const cv::Mat m) {
-    size_t elem_size = m.elemSize();
-    size_t elem_type = m.type();
-
-    write(os, m.size());
-    os << elem_size;
-    os << elem_type;
-
-    const size_t data_size = m.size().area() * elem_size;
-    os.write(reinterpret_cast<const char *>(m.data), data_size);
-}
-
-inline void read(std::istream &is, cv::Mat m) {
-    cv::Size size;
-    size_t elem_size, elem_type;
-
-    read(is, size);
-    is >> elem_size;
-    is >> elem_type;
-
-    m.create(size.height, size.width, elem_type);
-
-    const size_t data_size = size.area() * elem_size;
-    is.read(reinterpret_cast<char *>(m.data), data_size);
-}
-
-template<typename T>
-void write(std::ostream &os, const std::vector<T> vec){
-    size_t size = vec.size();
-    //write size
-    os.write((char*)&size, sizeof(size));
-    //write vec
-    for(auto& item : vec)
-        write(os, item);
-    os.write((char*)&vec[0], vec.size() * sizeof(T));
-}
-
 #endif //DEPTHCODEC_CVHELPERS_H

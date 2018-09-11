@@ -4,6 +4,8 @@
 
 #pragma once
 #include <vector>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include "NamedTimer.h"
 #include "opencv2/opencv.hpp"
 #include "CompressedData.h"
@@ -47,18 +49,23 @@ public:
 
         /// Evaluate Compression
         rslt.compressionTimer = NamedTimer("Compression");
-        std::stringstream compressedData;
-        mCodec->compress(compressedData, example);
+        std::stringstream ss;
+        boost::archive::binary_oarchive bo(ss);
+        boost::archive::binary_iarchive bi(ss);
+        mCodec->compress(example);
         rslt.compressionTimer.endTimer();
 
+        bo << mCodec;
         /// Evaluate CompressedData https://stackoverflow.com/questions/4432793/size-of-stringstream
-        compressedData.seekg(0, std::ios::end);
-        rslt.compressedSizeInBytes = compressedData.tellg();
+        ss.seekg(0, std::ios::end);
+        rslt.compressedSizeInBytes = ss.tellg();
+
+        bi >> mCodec;
 
         /// Evaluate decompression
         rslt.decompressionTimer = NamedTimer("Decompression");
         DATA_TYPE decompressed;
-        mCodec->decompress(compressedData, decompressed);
+        mCodec->decompress(decompressed);
         //rslt.decompressionTimer.endTimer();
 
         /// Evaluate lossyness

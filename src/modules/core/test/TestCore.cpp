@@ -9,7 +9,9 @@
 #include "QuadTreeTypes.h"
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
-#include "stlHelpers.h"
+#include "ReadWrite.h"
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 #define BOOST_LOG_DYN_LINK 1
 
@@ -138,11 +140,14 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
 
 
     RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
-    std::stringstream compressedData;
-    t.compress(compressedData, shortMat);
-
+    std::stringstream ss;
+    boost::archive::binary_oarchive bo(ss);
+    boost::archive::binary_iarchive bi(ss);
+    t.compress(shortMat);
+    bo << t;
+    bi >> t;
     cv::Mat decompressed;//(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
-    t.decompress(compressedData, decompressed);
+    t.decompress(decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
     std::vector<uchar> decompressedVec(decompressed.datastart,  decompressed.dataend);
@@ -156,18 +161,34 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
 }
 
 class MockLossyCodec{
-    mutable cv::Mat original;
+    cv::Mat mImage;
+
 public:
     MockLossyCodec(){};
 
-    void compress(std::ostream& stream, const cv::Mat& data) const {
-        write(stream, data);
+    void compress(const cv::Mat& data){
+        mImage = data.clone();
         BOOST_LOG_TRIVIAL(info) << "Compressing Data";
     };
 
-    void decompress(std::istream& stream, cv::Mat& data)const {
-        read(stream, data);
+    void decompress(cv::Mat& data){
+        data = mImage;
     };
+
+    template<class Archive>
+    void save(Archive & ar, const unsigned int version) const
+    {
+        write(ar, mImage);
+        mImage = cv::Mat();
+    }
+
+    template<class Archive>
+    void load(Archive & ar, const unsigned int version)
+    {
+        read(ar, mImage);
+    }
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
+    friend class boost::serialization::access;
 };
 
 BOOST_AUTO_TEST_CASE(TestCodecFramework){
