@@ -8,9 +8,7 @@
 
 #include <memory>
 #include "DepthCodecFactory.h"
-#include "ReadWrite.h"
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/shared_ptr.hpp>
+#include "cvHelpers.h"
 
 /// class that holds multiple codecs for a single image
 class TiledCodec: public IDepthCodec{

@@ -11,6 +11,7 @@
 #include "IDepthCodec.h"
 
 using DataStream = CompressedData;
+#include "BoostMarshaller.h"
 #include <boost/serialization/map.hpp>
 
 /*
@@ -54,7 +55,7 @@ class RollingQuadTree: public IDepthCodec, public QuadTree<ADDRESS_TYPE, LEAF_DA
 protected:
     void addLeafThenPrune(ADDRESS_TYPE a, const LEAF_DATA_TYPE& leafData){
         // add new cell to tree
-        this->addLeaf(a, leafData);
+        this->mTree.addLeaf(a, leafData);
         auto pa = parentAddress(a);
         if(a == bottomRight(pa)){
             /// as this is a bottom right quad, check to see if the parent quad could
@@ -101,7 +102,7 @@ public:
             int height = std::get<3>(decodedLeaf);
             // TODO make this part of the LEAF_NODE_TYPE
             cv::Mat cell = depthImage.rowRange(y, y + height).colRange(x , x + width);
-            cell.setTo(leaf.second.decodedValue());
+            cell.setTo(leaf.second.getMin());
         }
     }
 

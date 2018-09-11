@@ -9,10 +9,20 @@
 #include "QuadTreeTypes.h"
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
-#include "ReadWrite.h"
+#include "stlHelpers.h"
 
 #define BOOST_LOG_DYN_LINK 1
 
+
+
+BOOST_AUTO_TEST_CASE(TestMapStream)
+{
+	std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
+	std::stringstream ss;
+	ss << test;
+	ss >> rslt;
+	BOOST_TEST(test == rslt);
+}
 
 BOOST_AUTO_TEST_CASE(TestTest){
     std::cout << "Using OpenCV "

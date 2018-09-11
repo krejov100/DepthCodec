@@ -10,6 +10,8 @@
 #include "NodeAddress.h"
 #include "RollingQuadTree.h"
 #include "TiledCodec.h"
+#include "MinMax.h" 
+#include "Range.h"
 
 class AbsDiffPolicy{
     short mThresh;
@@ -18,7 +20,7 @@ protected:
     bool shouldPrune(LEAF_DATA_TYPE leafData){
         //if(leafData.min == 0)
         //    return true;
-        return abs(leafData.min-leafData.max) <= mThresh ;
+        return abs(leafData.getMin()-leafData.getMax()) <= mThresh ;
     }
 
     AbsDiffPolicy(){};
@@ -26,29 +28,8 @@ public:
     AbsDiffPolicy(short thresh):mThresh(thresh){}
 };
 
-
-class MinMax{
-public:
-    unsigned short min;
-    unsigned short max;
-
-    MinMax(){};
-
-    MinMax(unsigned short depth){
-        min = depth;
-        max = depth;
-    }
-
-    MinMax(MinMax tl, MinMax tr, MinMax bl, MinMax br) {
-        min = std::min({tl.min, tr.min, bl.min, br.min});
-        max = std::max({tl.max, tr.max, bl.max, br.max});
-    }
-
-    unsigned short decodedValue(){return max;};
-};
-
-using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy>;
-using RollingQT16bitMinMaxAbsDiff = RollingQuadTree<NodeAddress16bit, MinMax, AbsDiffPolicy>;
+using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;
+using RollingQT16bitMinMaxAbsDiff = RollingQuadTree<NodeAddress16bit, Range<unsigned short>, AbsDiffPolicy>;
 
 
 
