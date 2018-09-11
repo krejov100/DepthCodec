@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
     cv::Mat shortMat;
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
-    cv::resize(shortMat, shortMat, cv::Size(1440,2048));
+    cv::resize(shortMat, shortMat, cv::Size(480,640));
 
     boost::program_options::variables_map compressionOptions;
     compressionOptions.insert(std::make_pair("CodecType",po::variable_value(std::string("QuadTree"), false)));
@@ -226,3 +226,4 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
 BOOST_AUTO_TEST_CASE(TestCompressionFactory){
     std::cout<< DepthCodecFactory::getOptions();
 }
+

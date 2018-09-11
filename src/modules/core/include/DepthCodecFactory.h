@@ -13,8 +13,9 @@ class DepthCodecFactory: public Factory{
     std::map<std::string, std::shared_ptr<DepthCodecFactory>> mSubCodecFactories;
 
 public:
-    DepthCodecFactory(const po::variables_map& options);
-    void registerSubFactory(std::string name, std::shared_ptr<DepthCodecFactory> childFactory);
-    virtual std::shared_ptr<IDepthCodec> construct();
+    DepthCodecFactory();
+    void configure(const po::variables_map& options);
+    std::shared_ptr<IDepthCodec> construct();
+    static std::shared_ptr<IDepthCodec> construct(const po::variables_map& options);
     static po::options_description getOptions();
 };
