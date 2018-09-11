@@ -9,7 +9,10 @@
 #include "NodeAddress.h"
 #include <map>
 #include <bitset>
+<<<<<<< Updated upstream
 #include "Tree.h"
+=======
+>>>>>>> Stashed changes
 #include <boost/serialization/base_object.hpp>
 
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE, typename SPLIT_POLICY_TYPE>
