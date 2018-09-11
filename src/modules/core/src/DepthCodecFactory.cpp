@@ -1,31 +1,33 @@
 //testFramework
 // Created by philip on 8/9/18.
 //
-#include "DepthCodecFactory.h"
-#include <map>
+
+#include <DepthCodecFactory.h>
 #include "IDepthCodec.h"
 #include "NodeAddress.h"
-#include "QuadTreeCodecFactory.h"
+#include <map>
+#include <QuadTreeCodecFactory.h>
 
-DepthCodecFactory::DepthCodecFactory(const po::variables_map& options):Factory(options) {}
+DepthCodecFactory::DepthCodecFactory(const po::variables_map& options):Factory(options){}
 
-void DepthCodecFactory::registerSubFactory(std::string name, DepthCodecFactory* childFactory)
+void DepthCodecFactory::registerSubFactory(std::string name, std::shared_ptr<DepthCodecFactory> childFactory)
 {
-    mSubCodecFactories.insert(std::make_pair(name, std::bind(&DepthCodecFactory::construct,childFactory)));
+    mSubCodecFactories.insert(std::make_pair(name, childFactory));
 };
 
 std::shared_ptr<IDepthCodec> DepthCodecFactory::construct(){
-    return mSubCodecFactories.find(mOptions["CodecType"].as<std::string>())->second();
+    std::string factoryType = mOptions["CodecType"].as<std::string>();
+    auto subFactory = mSubCodecFactories.find(factoryType);
+    BOOST_ASSERT_MSG(subFactory != mSubCodecFactories.end(), "Invalid Codec Type or Child Factory not registered");
+    return subFactory->second->construct();
 }
 
 po::options_description DepthCodecFactory::getOptions(){
 
     po::options_description desc("Compression Configuration");
     desc.add_options()
-            ("CodecType", po::value<std::string>()->default_value("QuadTree"))
+            ("CodecType", po::value<std::string>())
             ;
-    desc.add(QuadTreeCodecFactory::getOptions());
-
     return desc;
 }
 
