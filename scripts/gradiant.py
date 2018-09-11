@@ -171,7 +171,6 @@ def testOuterIndexToXY():
 	count = 0
 	for a in itertools.combinations(coords,8):
 		count += 1
-	print(count)
 
 
 masks = genMaskfromLines(8)
