@@ -8,7 +8,6 @@
 
 #include <memory>
 #include "DepthCodecFactory.h"
-#include "cvHelpers.h"
 
 /// class that holds multiple codecs for a single image
 class TiledCodec: public IDepthCodec{

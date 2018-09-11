@@ -49,24 +49,12 @@ public:
 		return mLeafs.size();
 	}
 
-	friend std::ostream &operator<<(std::ostream &, const Tree<ADDRESS_TYPE, LEAF_DATA_TYPE> &);
-	friend std::istream &operator>>(std::istream &, Tree<ADDRESS_TYPE, LEAF_DATA_TYPE> &);
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version) const
+	{
+		// note, version is always the latest when saving
+		ar & mTree;
+	}
+
+	friend class boost::serialization::access;
 };
-
-template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE>
-std::ostream operator<<(std::ostream &os, const Tree<ADDRESS_TYPE, LEAF_DATA_TYPE> &v)
-{
-	os << getLeafCount();
-	std::copy(v.begin(), v.end(), std::ostream_iterator<T>(std::cout));
-	return os;
-}
-
-template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE>
-std::istream operator>>(std::istream &is, Tree<ADDRESS_TYPE, LEAF_DATA_TYPE> &v)
-{
-	size_t leafCount;
-	os >> leafCount;
-	std::copy(std::istream_iterator)
-	mLeafs
-	return is;
-}

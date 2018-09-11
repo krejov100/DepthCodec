@@ -66,7 +66,7 @@ public:
     void serialize(Archive & ar, const unsigned int version) const
     {
         // note, version is always the latest when saving
-        ar & tree;
+        ar & mTree;
     }
 
     friend class boost::serialization::access;
