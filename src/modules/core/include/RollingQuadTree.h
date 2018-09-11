@@ -11,8 +11,6 @@
 #include "IDepthCodec.h"
 
 using DataStream = CompressedData;
-#include "BoostMarshaller.h"
-#include <boost/serialization/map.hpp>
 
 /*
  *
@@ -93,8 +91,8 @@ public:
         }
     }
 
-    virtual void decompress(std::istream& stream, cv::Mat& depthImage){
         for(auto leaf : this->tree) {
+    virtual void decompress(std::istream& stream, cv::Mat& depthImage){
             auto decodedLeaf = this->decodeAddress(leaf.first);
             int x = std::get<0>(decodedLeaf);
             int y = std::get<1>(decodedLeaf);

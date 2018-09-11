@@ -15,6 +15,7 @@
 
 
 
+
 BOOST_AUTO_TEST_CASE(TestMapStream)
 {
 	std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
