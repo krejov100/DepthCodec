@@ -27,6 +27,9 @@ add_library(Core STATIC
 		include/QuadTreeTypes.h
 		include/RollingQuadTree.h
 		include/Range.h
+		include/Marshaller
+		include/BoostMarshaller
+		include/ReadWrite
 		src/NamedTimer.cpp
 		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp

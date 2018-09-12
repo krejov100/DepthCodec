@@ -12,7 +12,7 @@
 /// This blog post also discusses compression of streams which could be great to do but not here!
 ///https://cheind.wordpress.com/2011/12/06/serialization-of-cvmat-objects-using-boost/
 
-BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat)
+BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat);
 
 namespace boost {
     namespace serialization {
@@ -21,7 +21,7 @@ namespace boost {
         {
             ar & size.width;
             ar & size.height;
-        }
+		};
 
         /// Save serialization support for cv::Mat
         template<class Archive>
@@ -37,7 +37,7 @@ namespace boost {
 
             const size_t data_size = m.cols * m.rows * elem_size;
             ar & make_array(m.ptr(), data_size);
-        }
+		};
 
         /// Load serialization support for cv::Mat
         template<class Archive>
@@ -55,8 +55,8 @@ namespace boost {
 
             size_t data_size = m.cols * m.rows * elem_size;
             ar & make_array(m.ptr(), data_size);
-        }
+		};
 
-    }
-}
+	};
+};
 #endif //DEPTHCODEC_CVHELPERS_H

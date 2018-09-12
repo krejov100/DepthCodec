@@ -13,7 +13,7 @@
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
 #include "ReadWrite.h"
-#include "Range.h"
+#include "Range.h";
 #include "BoostMarshaller.hpp"
 #define BOOST_LOG_DYN_LINK 1
 

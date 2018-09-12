@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 3.0.0)
 option (USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
 set(CMAKE_CXX_FLAGS /bigobj)
+set(CMAKE_CXX_FLAGS /showIncludes)
+
 set(CMAKE_CXX_STANDARD 17)
 
 MESSAGE(STATUS ${CMAKE_CXX_COMPILER_ID})

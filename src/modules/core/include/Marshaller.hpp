@@ -4,13 +4,6 @@
 #include <cstring>
 #include "DataStream.hpp"
 
-/// runtime polymorphic handle for Publishers
-/*class IMarshaller{
-public:
-    using self_handle_type = std::shared_ptr<IMarshaller>;
-};*/
-
-
 /// Prepares a message for transport, possibly through serialisation
 template<typename MESSAGE_TYPE>
 class Marshaller{
