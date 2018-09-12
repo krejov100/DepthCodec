@@ -17,20 +17,21 @@ class AbsDiffPolicy{
 protected:
     template<typename LEAF_DATA_TYPE>
     bool shouldPrune(LEAF_DATA_TYPE leafData){
-        //if(leafData.min == 0)
-        //    return true;
+        if(leafData.getMin() == 0)
+            return true;
         return abs(leafData.getMin()-leafData.getMax()) <= mThresh ;
     }
 
     AbsDiffPolicy(){};
 public:
     AbsDiffPolicy(short thresh):mThresh(thresh){}
-
-
-    template<class Archive>
+	
+	template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
     }
+
+	friend boost::serialization::access;
 };
 
 using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;

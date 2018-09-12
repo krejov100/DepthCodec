@@ -2,6 +2,10 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/log/trivial.hpp>
 #include <DepthCodecFactory.h>
+#include <boost/serialization/export.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 #include "opencv2/opencv.hpp"
 #include "CodecEvalFramework.h"
 #include "NodeAddress.h"
@@ -10,10 +14,7 @@
 #include "opencv2/core/version.hpp"
 #include "ReadWrite.h"
 #include "Range.h"
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include "BoostMarshaller.hpp"
-#include "ReadWrite.h"
 #define BOOST_LOG_DYN_LINK 1
 
 BOOST_AUTO_TEST_CASE(TestMapStream)
@@ -130,7 +131,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     BOOST_TEST(pa == 0b000);
 
     cv::Mat example = cv::imread("../../modules/core/resources/bgExampleDepth.tif");
-    cv::resize(example, example, cv::Size(1024,720));
+    cv::resize(example, example, cv::Size(512,512), cv::INTER_NEAREST);
 
     cv::Mat gray_image;
     cv::cvtColor(example, gray_image, CV_BGR2GRAY);
@@ -144,7 +145,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     t.compress(shortMat);
     auto data = bm.marshall(t);
     t = bm.unmarshall(data);
-    cv::Mat decompressed;//(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
+    cv::Mat decompressed(512, 512, CV_16UC1, cv::Scalar(0));
     t.decompress(decompressed);
     showCompressionArtifacts(shortMat, decompressed);
     std::vector<uchar> exampleVec(example.datastart,  example.dataend);
@@ -220,3 +221,10 @@ BOOST_AUTO_TEST_CASE(TestCompressionFactory){
     std::cout<< DepthCodecFactory().getOptions();
 }
 
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(IDepthCodec);
+BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
+BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
+BOOST_CLASS_EXPORT(Range<unsigned short>);
+BOOST_CLASS_EXPORT(TiledCodec);
+BOOST_CLASS_EXPORT(AbsDiffPolicy);
+//BOOST_CLASS_EXPORT(Tree)

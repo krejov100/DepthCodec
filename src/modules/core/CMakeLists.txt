@@ -3,6 +3,7 @@
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
 set(Boost_USE_STATIC_LIBS ON)
+
 message(STATUS BOOST_ROOT ${BOOST_ROOT})
 find_package (Boost COMPONENTS system program_options log serialization REQUIRED)
 ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
@@ -43,17 +44,19 @@ target_link_libraries(Core
 		PUBLIC ${OpenCV_LIBS}
 	)
 
-#install(TARGETS Core EXPORT CoreTargets
-#		LIBRARY DESTINATION lib
-#		ARCHIVE DESTINATION lib
-#		RUNTIME DESTINATION bin
-#		INCLUDES DESTINATION include
-#	)
+install(TARGETS Core EXPORT CoreTargets
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	INCLUDES DESTINATION include
+)
 
-#install(EXPORT CoreTargets
-#		FILE CoreTargets.cmake
-#		DESTINATION lib/cmake/Core
-#	)
+install(EXPORT CoreTargets
+	FILE CoreTargets.cmake
+	DESTINATION lib/cmake/Core
+)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/bgExampleDepth.tif  ${CMAKE_CURRENT_BINARY_DIR}/resources/bgExampleDepth.tif  COPYONLY)
 
 add_executable(TestCore test/TestCore.cpp)
 

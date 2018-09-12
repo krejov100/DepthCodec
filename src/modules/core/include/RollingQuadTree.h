@@ -5,11 +5,10 @@
 #ifndef CAPTURE_TRIANGULATION_ROLLINGQUADTREE_H
 #define CAPTURE_TRIANGULATION_ROLLINGQUADTREE_H
 
-
+#include <boost/serialization/base_object.hpp>
 #include "QuadTree.h"
 #include "boost/log/trivial.hpp"
 #include "IDepthCodec.h"
-#include <boost/serialization/base_object.hpp>
 
 /*
  *
@@ -80,6 +79,7 @@ public:
 
     virtual void compress(const cv::Mat & im)
     {
+		this->setImageSize(im.size());
         size_t maxTreeDepth = maxDepth<ADDRESS_TYPE>();
         BOOST_LOG_TRIVIAL(info) << "Max tree depth: "<< maxTreeDepth;
         for (int y = 0; y < im.rows; y++) {
@@ -105,7 +105,7 @@ public:
         }
     }
 
-    virtual bool getMaximumSize(cv::Size& size) const {
+    virtual bool getMaxImageSize(cv::Size& size) const {
         size = cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
         return true;
     }

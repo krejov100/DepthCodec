@@ -57,16 +57,14 @@ public:
 
         bo << mCodec;
         /// Evaluate CompressedData https://stackoverflow.com/questions/4432793/size-of-stringstream
-        ss.seekg(0, std::ios::end);
-        rslt.compressedSizeInBytes = ss.tellg();
-
+        rslt.compressedSizeInBytes = ss.str().size();
         bi >> mCodec;
 
         /// Evaluate decompression
         rslt.decompressionTimer = NamedTimer("Decompression");
         DATA_TYPE decompressed;
         mCodec->decompress(decompressed);
-        //rslt.decompressionTimer.endTimer();
+        rslt.decompressionTimer.endTimer();
 
         /// Evaluate lossyness
         //rslt.meanSquaredError = MSE(example, decompressed);

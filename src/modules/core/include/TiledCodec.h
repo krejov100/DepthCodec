@@ -11,52 +11,70 @@
 
 /// class that holds multiple codecs for a single image
 class TiledCodec: public IDepthCodec{
-    std::vector<std::shared_ptr<IDepthCodec>> subCodecs;
+    std::vector<std::shared_ptr<IDepthCodec>> mSubCodecs;
     std::shared_ptr<DepthCodecFactory> mFactory;
-    cv::Size mImageSize;
-
+    
 protected:
     TiledCodec(){};
 public:
     TiledCodec(std::shared_ptr<DepthCodecFactory> factory):mFactory(factory){};
 
     virtual void compress(const cv::Mat& depthImage){
-        mImageSize = depthImage.size();
+        this->setImageSize(depthImage.size());
         auto exampleCodec = mFactory->construct();
-        cv::Size maxImageSize;
-        if(!exampleCodec->getMaxImageSize(maxImageSize))
-            maxImageSize = mImageSize;
-        for(int y = 0; y < mImageSize.height; y+=maxImageSize.height){
-            for(int x = 0; x < mImageSize.width; x+=maxImageSize.width){
-                // use the max size of the tree for the width and height, or what remains of the image
-                size_t width = std::min(maxImageSize.width ,  mImageSize.width - x);
-                size_t height = std::min(maxImageSize.height , mImageSize.height - y);
+        cv::Size maxImageSize, imageSize;
+		if (exampleCodec->getMaxImageSize(maxImageSize))
+			imageSize = this->getImageSize();
+		for (int y = 0; y < imageSize.height; y += maxImageSize.height)
+		{
+			for (int x = 0; x < imageSize.width; x += maxImageSize.width)
+			{
+				// use the max size of the tree for the width and height, or what remains of the image
+				size_t width = std::min(maxImageSize.width, imageSize.width - x);
+				size_t height = std::min(maxImageSize.height, imageSize.height - y);
 
-                auto codec = mFactory->construct();
-                cv::Rect subRegion(x, y, width, height);
-                cv::Mat subMat = depthImage(subRegion);
+				auto codec = mFactory->construct();
+				cv::Rect subRegion(x, y, width, height);
+				cv::Mat subMat = depthImage(subRegion);
 
-                codec->compress(subMat);
+				codec->compress(subMat);
 
-                subCodecs.push_back(codec);
-            }
-        }
+				mSubCodecs.push_back(codec);
+			}
+		}
     }
 
     virtual void decompress(cv::Mat& depthImage){
+		depthImage = cv::Mat(getImageSize(), CV_16UC1, cv::Scalar(0));
+		size_t x = 0, y = 0;
+		for (auto& subCodec : mSubCodecs) {
+			// get the size of the underlying codec and decompress that portion of the image
+			cv::Size subImageSize;
+			subImageSize = subCodec->getImageSize();
 
+			cv::Rect subRegion(x, y, subImageSize.width, subImageSize.height);
+			cv::Mat subMat = depthImage(subRegion);
+			subCodec->compress(subMat);
+
+			if (subImageSize.width + x >= getImageSize().width)
+			{
+				x = 0;
+				y += subImageSize.height;
+			}
+			else
+				x += subImageSize.width;
+			//move to the next portion of the image
+		}
     }
 
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & boost::serialization::base_object<IDepthCodec>(*this);
+		ar & mSubCodecs;
+	}
 
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        // note, version is always the latest when saving
-        ar & mImageSize;
-        ar & subCodecs;
-    }
-
-    friend class boost::serialization::access;
+	friend class boost::serialization::access;
 };
 
 
