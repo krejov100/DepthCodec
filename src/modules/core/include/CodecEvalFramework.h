@@ -8,7 +8,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include "NamedTimer.h"
 #include "opencv2/opencv.hpp"
-#include "CompressedData.h"
+#include "DataStream.hpp"
 #include "iostream"
 
 /// This is an interface for a compressable object
@@ -34,15 +34,15 @@ public:
 
 // The CODEC_POLICY is templated as it may be depth based, requiring DATA_TYPE to be cv::Mat
 // if its pointcloud based then it needs to be pcl::Pointcloud or open3d::Pointcloud
-template<typename DATA_TYPE, typename CODEC_PTR_TYPE>
+template<typename DATA_TYPE, typename CODEC_TYPE>
 class CodecEvalFramework{
     std::vector<CompressionMetric> results;
-    CODEC_PTR_TYPE* mCodec;
+    CODEC_TYPE* mCodec;
 public:
 
-    CodecEvalFramework(CODEC_PTR_TYPE* codec):mCodec(codec){};
+    CodecEvalFramework(CODEC_TYPE* codec):mCodec(codec){};
 
-    CompressionMetric evaluateCodecOnExample(const DATA_TYPE& example, bool showArtifacts=true) const
+    CompressionMetric evaluateCodecOnExample(const DATA_TYPE& example, bool showArtifacts=true)
     {
         CompressionMetric rslt;
         rslt.originalSizeInBytes = 0;

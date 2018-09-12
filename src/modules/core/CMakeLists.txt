@@ -13,9 +13,7 @@ find_package (OpenCV 3.4.1 REQUIRED)
 message(STATUS ${_opencv_args})
 
 add_library(Core STATIC
-		include/cvHelpers.h 
 		include/CodecEvalFramework.h
-		include/CompressedData.h
 		include/DepthCodecFactory.h
 		include/Factory.h
 		include/IDepthCodec.h
@@ -24,7 +22,6 @@ add_library(Core STATIC
 		include/NodeAddress.h
 		include/Tree.h
 		include/QuadTree.h
-		include/QuadTreeCodec.h
 		include/QuadTreeCodecFactory.h
 		include/QuadTreeTypes.h
 		include/RollingQuadTree.h

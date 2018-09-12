@@ -23,12 +23,14 @@ public:
     virtual void compress(const cv::Mat& depthImage){
         mImageSize = depthImage.size();
         auto exampleCodec = mFactory->construct();
-        cv::Size maxTreeSize = exampleCodec->getOptimalSize ();
-        for(int y = 0; y < mImageSize.height; y+=maxTreeSize.height){
-            for(int x = 0; x < mImageSize.width; x+=maxTreeSize.width){
+        cv::Size maxImageSize;
+        if(!exampleCodec->getMaxImageSize(maxImageSize))
+            maxImageSize = mImageSize;
+        for(int y = 0; y < mImageSize.height; y+=maxImageSize.height){
+            for(int x = 0; x < mImageSize.width; x+=maxImageSize.width){
                 // use the max size of the tree for the width and height, or what remains of the image
-                size_t width = std::min(maxTreeSize.width ,  mImageSize.width - x);
-                size_t height = std::min(maxTreeSize.height , mImageSize.height - y);
+                size_t width = std::min(maxImageSize.width ,  mImageSize.width - x);
+                size_t height = std::min(maxImageSize.height , mImageSize.height - y);
 
                 auto codec = mFactory->construct();
                 cv::Rect subRegion(x, y, width, height);
@@ -46,12 +48,8 @@ public:
     }
 
 
-    virtual cv::Size getOptimalSize(){
-        return cv::Size(3840, 2160);
-    }
-
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int version) const
+    void serialize(Archive & ar, const unsigned int version)
     {
         // note, version is always the latest when saving
         ar & mImageSize;

@@ -6,6 +6,8 @@
 #include "QuadTreeCodecFactory.h"
 #include "QuadTreeTypes.h"
 
+QuadTreeCodecFactory::QuadTreeCodecFactory(const po::variables_map& options):DepthCodecFactory(options){};
+
 std::shared_ptr<IDepthCodec> QuadTreeCodecFactory::construct(){
     return std::make_shared<RollingQT32bitMinMaxAbsDiff>(AbsDiffPolicy(30 * (65536/255)));
 }

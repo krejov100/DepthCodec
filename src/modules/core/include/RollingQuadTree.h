@@ -9,9 +9,6 @@
 #include "QuadTree.h"
 #include "boost/log/trivial.hpp"
 #include "IDepthCodec.h"
-
-using DataStream = CompressedData;
-#include <boost/serialization/map.hpp>
 #include <boost/serialization/base_object.hpp>
 
 /*
@@ -55,7 +52,7 @@ class RollingQuadTree: public IDepthCodec, public QuadTree<ADDRESS_TYPE, LEAF_DA
 protected:
     void addLeafThenPrune(ADDRESS_TYPE a, const LEAF_DATA_TYPE& leafData){
         // add new cell to tree
-        this->mTree.addLeaf(a, leafData);
+        this->addLeaf(a, leafData);
         auto pa = parentAddress(a);
         if(a == bottomRight(pa)){
             /// as this is a bottom right quad, check to see if the parent quad could
@@ -74,7 +71,7 @@ protected:
 
 public:
 
-    RollingQuadTree() = default;
+    RollingQuadTree(){};
 
     //TODO make address depth agnostic
     //TODO allow LEAF data to represent more then one pixel
@@ -96,8 +93,7 @@ public:
     }
 
     virtual void decompress(cv::Mat& depthImage){
-        for(auto leaf : this->tree) {
-    virtual void decompress(std::istream& stream, cv::Mat& depthImage){
+        for(auto leaf : this->mLeafs) {
             auto decodedLeaf = this->decodeAddress(leaf.first);
             int x = std::get<0>(decodedLeaf);
             int y = std::get<1>(decodedLeaf);
@@ -109,12 +105,13 @@ public:
         }
     }
 
-    virtual cv::Size getOptimalSize(){
-        return cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
+    virtual bool getMaximumSize(cv::Size& size) const {
+        size = cv::Size(maxDimensionLength<ADDRESS_TYPE>(), maxDimensionLength<ADDRESS_TYPE>());
+        return true;
     }
 
     template<class Archive>
-    void serialize(Archive & ar, const unsigned int version) const
+    void serialize(Archive & ar, const unsigned int version)
     {
         // note, version is always the latest when saving
         ar & boost::serialization::base_object<QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>(*this);

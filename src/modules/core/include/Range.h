@@ -35,22 +35,13 @@ public:
 		return mMax;
 	}
 
-	friend std::ostream &operator<<(std::ostream &, const Range<T> &);
-	friend std::istream &operator>>(std::istream &, Range<T> &);
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        // note, version is always the latest when saving
+        ar & mMin;
+        ar & mMax;
+    }
+
+    friend class boost::serialization::access;
 };
-
-template<typename T>
-std::ostream operator<<(std::ostream &os, const Range<T> &v)
-{
-	os << v.mMin;
-	os << v.mMax;
-	return os;
-}
-
-template<typename T>
-std::ostream operator>>(std::istream &is, Range<T> &v)
-{
-	is >> v.mMin;
-	is >> v.mMax;
-	return is;
-}

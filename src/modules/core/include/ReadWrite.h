@@ -11,6 +11,9 @@
 
 /// This blog post also discusses compression of streams which could be great to do but not here!
 ///https://cheind.wordpress.com/2011/12/06/serialization-of-cvmat-objects-using-boost/
+
+BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat)
+
 namespace boost {
     namespace serialization {
         template<class Archive>
@@ -19,8 +22,6 @@ namespace boost {
             ar & size.width;
             ar & size.height;
         }
-
-        BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat)
 
         /// Save serialization support for cv::Mat
         template<class Archive>

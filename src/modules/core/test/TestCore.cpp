@@ -1,7 +1,6 @@
 #define BOOST_TEST_MODULE TestCore
 #include <boost/test/included/unit_test.hpp>
 #include <boost/log/trivial.hpp>
-#include <CompressedData.h>
 #include <DepthCodecFactory.h>
 #include "opencv2/opencv.hpp"
 #include "CodecEvalFramework.h"
@@ -10,20 +9,20 @@
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
 #include "ReadWrite.h"
+#include "Range.h"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-
+#include "BoostMarshaller.hpp"
+#include "ReadWrite.h"
 #define BOOST_LOG_DYN_LINK 1
-
-
-
 
 BOOST_AUTO_TEST_CASE(TestMapStream)
 {
-	std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
-	std::stringstream ss;
-	ss << test;
-	ss >> rslt;
+    std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
+	BoostMarshaller<std::map<int, std::string>> bm;
+    auto data = bm.marshall(test);
+    bm.unmarshall(data);
+
 	BOOST_TEST(test == rslt);
 }
 
@@ -138,14 +137,13 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     cv::Mat shortMat;
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
+    using Codec = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;
+    Codec t(AbsDiffPolicy(30 * (65536/255)));
 
-    RollingQuadTree<NodeAddress32bit, MinMax, AbsDiffPolicy> t(AbsDiffPolicy(30 * (65536/255)));
-    std::stringstream ss;
-    boost::archive::binary_oarchive bo(ss);
-    boost::archive::binary_iarchive bi(ss);
+    BoostMarshaller<Codec> bm;
     t.compress(shortMat);
-    bo << t;
-    bi >> t;
+    auto data = bm.marshall(t);
+    t = bm.unmarshall(data);
     cv::Mat decompressed;//(t.getImageHeight(), t.getImageWidth(), CV_16UC1, cv::Scalar(0));
     t.decompress(decompressed);
     showCompressionArtifacts(shortMat, decompressed);
@@ -175,19 +173,14 @@ public:
         data = mImage;
     };
 
-    template<class Archive>
-    void save(Archive & ar, const unsigned int version) const
-    {
-        write(ar, mImage);
-        mImage = cv::Mat();
-    }
 
     template<class Archive>
-    void load(Archive & ar, const unsigned int version)
+    void serialize(Archive & ar, const unsigned int version)
     {
-        read(ar, mImage);
+        // note, version is always the latest when saving
+        ar & mImage;
     }
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
+
     friend class boost::serialization::access;
 };
 
@@ -224,6 +217,6 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
 }
 
 BOOST_AUTO_TEST_CASE(TestCompressionFactory){
-    std::cout<< DepthCodecFactory::getOptions();
+    std::cout<< DepthCodecFactory().getOptions();
 }
 

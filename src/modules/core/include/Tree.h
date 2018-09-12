@@ -1,11 +1,16 @@
 #include <map>
+#include <boost/serialization/map.hpp>
 
 // a basic tree that uses a map internally
 template<typename ADDRESS_TYPE, typename LEAF_DATA_TYPE>
 class Tree
 {
+protected:
 	std::map<ADDRESS_TYPE, LEAF_DATA_TYPE> mLeafs;
 public:
+
+	typedef typename std::map<ADDRESS_TYPE, LEAF_DATA_TYPE>::iterator LeafNode;
+
 	size_t getSizeInBtyes()
 	{
 		return mLeafs.size() * sizeof(LEAF_DATA_TYPE);
@@ -17,10 +22,7 @@ public:
 		mLeafs[address] = leafData;
 	}
 
-	typedef typename std::map<ADDRESS_TYPE, LEAF_DATA_TYPE>::iterator LeafNode;	
-	typedef typename const std::map<ADDRESS_TYPE, LEAF_DATA_TYPE>::iterator const_LeafNode;
-
-	LeafNode& getLeaf(ADDRESS_TYPE address) {
+	LeafNode getLeaf(ADDRESS_TYPE address) {
 		return mLeafs.find(address);
 	}
 
@@ -50,10 +52,10 @@ public:
 	}
 
 	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version) const
+	void serialize(Archive & ar, const unsigned int version)
 	{
 		// note, version is always the latest when saving
-		ar & mTree;
+		ar & mLeafs;
 	}
 
 	friend class boost::serialization::access;

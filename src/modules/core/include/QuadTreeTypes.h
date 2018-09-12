@@ -10,7 +10,6 @@
 #include "NodeAddress.h"
 #include "RollingQuadTree.h"
 #include "TiledCodec.h"
-#include "MinMax.h" 
 #include "Range.h"
 
 class AbsDiffPolicy{
@@ -26,6 +25,12 @@ protected:
     AbsDiffPolicy(){};
 public:
     AbsDiffPolicy(short thresh):mThresh(thresh){}
+
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+    }
 };
 
 using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;
