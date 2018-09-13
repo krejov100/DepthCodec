@@ -13,7 +13,7 @@
 #include "QuadTreeCodecFactory.h"
 #include "opencv2/core/version.hpp"
 #include "ReadWrite.h"
-#include "Range.h";
+#include "Range.h"
 #include "BoostMarshaller.hpp"
 #define BOOST_LOG_DYN_LINK 1
 
@@ -190,6 +190,13 @@ BOOST_AUTO_TEST_CASE(TestCodecFramework){
     CodecEvalFramework<cv::Mat, MockLossyCodec> testFramework(codec.get());
     auto rslt = testFramework.evaluateCodecOnExample(cv::Mat(640, 480, CV_16UC1, cv::Scalar(0)), false);
     rslt.printPerformance(std::cout);
+}
+
+BOOST_AUTO_TEST_CASE(TestPlayRosBag){
+    FrameSource fs("/home/philip/Downloads/structured.bag");
+
+    auto frame = fs.grabFrame();
+    frame.getIntrin
 }
 
 BOOST_AUTO_TEST_CASE(TestCodecFactory){

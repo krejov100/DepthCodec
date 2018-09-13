@@ -101,7 +101,7 @@ public:
             int height = std::get<3>(decodedLeaf);
             // TODO make this part of the LEAF_NODE_TYPE
             cv::Mat cell = depthImage.rowRange(y, y + height).colRange(x , x + width);
-            cell.setTo(leaf.second.getMin());
+            cell.setTo(leaf.second.getMax());
         }
     }
 

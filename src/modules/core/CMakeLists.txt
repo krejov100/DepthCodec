@@ -34,17 +34,21 @@ add_library(Core STATIC
 		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-	)
+		include/ImageConversions.h)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
+		SYSTEM PRIVATE  ${realsense_INCLUDE_DIR}
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 	)
 
 target_link_libraries(Core
 		PUBLIC ${Boost_LIBRARIES}
+		PUBLIC ${realsense2_LIBRARY}
 		PUBLIC ${OpenCV_LIBS}
+		PUBLIC Open3D
 	)
 
 install(TARGETS Core EXPORT CoreTargets
@@ -65,10 +69,14 @@ add_executable(TestCore test/TestCore.cpp)
 
 target_include_directories(TestCore
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
 		PUBLIC Core
 	)
 target_link_libraries(TestCore
 		PUBLIC ${Boost_LIBRARIES}
+		PUBLIC ${realsense2_LIBRARY}
+		PUBLIC Open3D
 		PUBLIC Core
 	)
 
