@@ -34,7 +34,7 @@ add_library(Core STATIC
 		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		include/ImageConversions.h)
+		include/ImageConversions.h include/DepthCodec.h)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}

@@ -29,7 +29,7 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-		ar & mImageSize;
+        ar & mImageSize;
     }
 
     friend class boost::serialization::access;

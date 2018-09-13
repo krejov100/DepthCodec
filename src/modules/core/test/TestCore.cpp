@@ -17,6 +17,12 @@
 #include "BoostMarshaller.hpp"
 #define BOOST_LOG_DYN_LINK 1
 
+
+BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
+BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
+BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec");
+BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
+
 BOOST_AUTO_TEST_CASE(TestMapStream)
 {
     std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
@@ -159,7 +165,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     cv::waitKey(0);
 }
 
-class MockLossyCodec{
+class MockLossyCodec:public IDepthCodec{
     cv::Mat mImage;
 
 public:
@@ -179,6 +185,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         // note, version is always the latest when saving
+        boost::serialization::void_cast_register<MockLossyCodec, IDepthCodec>();
         ar & mImage;
     }
 
@@ -186,8 +193,8 @@ public:
 };
 
 BOOST_AUTO_TEST_CASE(TestCodecFramework){
-    auto codec = std::make_unique<MockLossyCodec>();
-    CodecEvalFramework<cv::Mat, MockLossyCodec> testFramework(codec.get());
+    auto codec = std::make_shared<MockLossyCodec>();
+    CodecEvalFramework<cv::Mat, MockLossyCodec> testFramework(codec);
     auto rslt = testFramework.evaluateCodecOnExample(cv::Mat(640, 480, CV_16UC1, cv::Scalar(0)), false);
     rslt.printPerformance(std::cout);
 }
@@ -196,7 +203,7 @@ BOOST_AUTO_TEST_CASE(TestPlayRosBag){
     FrameSource fs("/home/philip/Downloads/structured.bag");
 
     auto frame = fs.grabFrame();
-    frame.getIntrin
+    frame.getIntrin();
 }
 
 BOOST_AUTO_TEST_CASE(TestCodecFactory){
@@ -207,7 +214,7 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
     cv::Mat shortMat;
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
-    cv::resize(shortMat, shortMat, cv::Size(480,640));
+    cv::resize(shortMat, shortMat, cv::Size(1280,720));
 
     boost::program_options::variables_map compressionOptions;
     compressionOptions.insert(std::make_pair("CodecType",po::variable_value(std::string("QuadTree"), false)));
@@ -217,7 +224,7 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
 
     auto codec = std::make_shared<TiledCodec>(codecFactory);
 
-    CodecEvalFramework<cv::Mat, IDepthCodec> testFramework(codec.get());
+    CodecEvalFramework<cv::Mat, IDepthCodec> testFramework(codec);
     auto rslt = testFramework.evaluateCodecOnExample(shortMat, true);
     rslt.printPerformance(std::cout);
 
@@ -228,10 +235,5 @@ BOOST_AUTO_TEST_CASE(TestCompressionFactory){
     std::cout<< DepthCodecFactory().getOptions();
 }
 
-BOOST_SERIALIZATION_ASSUME_ABSTRACT(IDepthCodec);
-BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT(Range<unsigned short>);
-BOOST_CLASS_EXPORT(TiledCodec);
-BOOST_CLASS_EXPORT(AbsDiffPolicy);
+
 //BOOST_CLASS_EXPORT(Tree)

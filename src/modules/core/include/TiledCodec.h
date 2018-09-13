@@ -58,7 +58,7 @@ public:
 
 			cv::Rect subRegion(x, y, subImageSize.width, subImageSize.height);
 			cv::Mat subMat = depthImage(subRegion);
-			subCodec->compress(subMat);
+			subCodec->decompress(subMat);
 
 			if (subImageSize.width + x >= getImageSize().width)
 			{
@@ -75,6 +75,7 @@ public:
 	void serialize(Archive & ar, const unsigned int version)
 	{
 		ar & boost::serialization::base_object<IDepthCodec>(*this);
+		boost::serialization::void_cast_register<TiledCodec, IDepthCodec>();
 		ar & mSubCodecs;
 	}
 

@@ -16,6 +16,7 @@
 #include "DataStream.hpp"
 #include "iostream"
 #include "ImageConversions.h"
+#include "DepthCodec.h"
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
@@ -38,11 +39,11 @@ public:
     void printPerformance(std::ostream& ostream) const;
 };
 
-std::shared_ptr<three::PointCloud> PointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
+inline std::shared_ptr<three::PointCloud> PointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
 
 }
 
-std::shared_ptr<three::PointCloud> PointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
+inline std::shared_ptr<three::PointCloud> PointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
     auto depthImage = getOpen3DImage(depth);
     auto colorImage = getOpen3DImage(color);
 
@@ -53,30 +54,34 @@ std::shared_ptr<three::PointCloud> PointCloud(const rs2::depth_frame& depth, con
 }
 
 class Frame {
-    rs2::frameset mFrameSet;
     rs2::pointcloud mPc;
     cv::Mat mDepth;
     cv::Mat mColor;
+    rs2_intrinsics mIntrinsics;
 public:
-    Frame(const rs2::frameset& fs) : mFrameSet(fs){
-        mDepth = getOpenCVImage(fs.get_depth_frame());
-        mColor = getOpenCVImage(fs.get_color_frame());
-    };
-    cv::Mat GetDepthImage();
 
-    void SetDepthImage();
+    Frame(const rs2::frameset& fs){
+        mDepth = getOpenCVImage(fs.get_depth_frame());
+        // todo recompile LibRS removing the need for the const cast
+        mColor = getOpenCVImage(const_cast<rs2::frameset*>(&fs)->get_color_frame());
+        mIntrinsics = fs.get_profile().as<rs2::video_stream_profile>().get_intrinsics();
+    };
+    cv::Mat GetDepthImage(){
+        return mDepth;
+    }
+
+    void updateDepthImage(cv::Mat& depthImage){
+        mDepth = depthImage.clone();
+    }
 
     std::shared_ptr<three::PointCloud> GetPointCloud(){
-
-
         auto intrin = getIntrin();
-
-        return PointCloud(depth, intrin, color);
+        return PointCloud(mDepth, intrin, mColor);
     }
 
     rs2_intrinsics getIntrin()
     {
-        return mFrameSet.get_profile().as<rs2::video_stream_profile>().get_intrinsics();
+        return mIntrinsics;
     }
 
     friend class FrameSource;
@@ -95,7 +100,7 @@ public:
     }
 
     Frame grabFrame(){
-        return {mPipe.wait_for_frames()};
+        return Frame(mPipe.wait_for_frames());
     }
 };
 
@@ -104,15 +109,15 @@ public:
 template<typename DATA_TYPE, typename CODEC_TYPE>
 class CodecEvalFramework{
     std::vector<CompressionMetric> results;
-    CODEC_TYPE* mCodec;
+    std::shared_ptr<CODEC_TYPE> mCodec;
 public:
 
-    CodecEvalFramework(CODEC_TYPE* codec):mCodec(codec){};
+    CodecEvalFramework(std::shared_ptr<CODEC_TYPE> codec):mCodec(codec){};
 
     CompressionMetric evaluateCodecOnExample(const DATA_TYPE& example, bool showArtifacts=true)
     {
         CompressionMetric rslt;
-        rslt.originalSizeInBytes = 0;
+        rslt.originalSizeInBytes = example.total() * example.elemSize();;
 
         /// Evaluate Compression
         rslt.compressionTimer = NamedTimer("Compression");
@@ -134,13 +139,19 @@ public:
         rslt.decompressionTimer.endTimer();
 
         /// Evaluate lossyness
-        //rslt.meanSquaredError = MSE(example, decompressed);
-        //rslt.peakSignalToNoise = PSNR(example, decompressed);
-        //if(showArtifacts)
-         //   showCompressionArtifacts(example, decompressed);
+        rslt.meanSquaredError = MSE(example, decompressed);
+        rslt.peakSignalToNoise = PSNR(example, decompressed);
+        if(showArtifacts)
+            showCompressionArtifacts(example, decompressed);
+
+        cv::imshow("sdf", decompressed);
 
         return rslt;
     };
 
-    FrameSource loadRosBag(std::string)
+
+    // TODO write function that evaluates against a ros bag file
+    void RosBag(std::string)
+    {
+    };
 };

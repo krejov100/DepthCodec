@@ -114,6 +114,8 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         // note, version is always the latest when saving
+        boost::serialization::void_cast_register<RollingQuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>, IDepthCodec>();
+        ar & boost::serialization::base_object<IDepthCodec>(*this);
         ar & boost::serialization::base_object<QuadTree<ADDRESS_TYPE, LEAF_DATA_TYPE, SPLIT_POLICY_TYPE>>(*this);
     }
 

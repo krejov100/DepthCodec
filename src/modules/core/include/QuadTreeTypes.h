@@ -17,8 +17,8 @@ class AbsDiffPolicy{
 protected:
     template<typename LEAF_DATA_TYPE>
     bool shouldPrune(LEAF_DATA_TYPE leafData){
-        if(leafData.getMin() == 0)
-            return true;
+        //if(leafData.getMin() == 0)
+        //    return true;
         return abs(leafData.getMin()-leafData.getMax()) <= mThresh ;
     }
 
@@ -36,9 +36,6 @@ public:
 
 using RollingQT32bitMinMaxAbsDiff = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;
 using RollingQT16bitMinMaxAbsDiff = RollingQuadTree<NodeAddress16bit, Range<unsigned short>, AbsDiffPolicy>;
-
-
-
 
 
 #endif //DEPTHCODEC_QUADTREETYPES_H
