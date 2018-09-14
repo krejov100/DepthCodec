@@ -231,8 +231,39 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
     cv::waitKey(0);
 }
 
+BOOST_AUTO_TEST_CASE(TestLoadRosBag){
+    auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
+
+    auto frame = fs.grabFrame();
+
+    boost::program_options::variables_map compressionOptions;
+    compressionOptions.insert(std::make_pair("CodecType", po::variable_value(std::string("QuadTree"), false)));
+    po::notify(compressionOptions);
+    auto codecFactory = std::make_shared<DepthCodecFactory>(compressionOptions);
+    codecFactory->registerSubFactory("QuadTree", std::make_shared<QuadTreeCodecFactory>(compressionOptions));
+
+    auto codec = std::make_shared<TiledCodec>(codecFactory);
+
+    cv::Mat depthImage = frame.getDepthImage();
+    cv::Mat rslt;
+
+    compressAndDecompress(codec, depthImage, rslt);
+
+    frame.updateDepthImage(rslt);
+    three::Visualizer vis;
+    vis.CreateWindow();
+    //three::DrawGeometries({});
+    vis.AddGeometry(frame.getPointCloud());
+    vis.UpdateGeometry();
+
+    cv::waitKey(0);
+}
+
+
 BOOST_AUTO_TEST_CASE(TestCompressionFactory){
     std::cout<< DepthCodecFactory().getOptions();
+
+
 }
 
 

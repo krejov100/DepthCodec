@@ -6,6 +6,8 @@
 #include <vector>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <Core/Core.h>
+#include <IO/IO.h>
 #include <Visualization/Visualization.h>
 #include <Geometry/Geometry.h>
 #include <PinholeCameraIntrinsic.h>
@@ -17,6 +19,7 @@
 #include "iostream"
 #include "ImageConversions.h"
 #include "DepthCodec.h"
+
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
@@ -39,18 +42,26 @@ public:
     void printPerformance(std::ostream& ostream) const;
 };
 
-inline std::shared_ptr<three::PointCloud> PointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
+inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
+    auto depthImage = getOpen3DImage(depth);
+    //auto colorImage = getOpen3DImage(color);
 
+    //auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
+    ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
+    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
+            depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin.ppy));
 }
 
-inline std::shared_ptr<three::PointCloud> PointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
+inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
     auto depthImage = getOpen3DImage(depth);
-    auto colorImage = getOpen3DImage(color);
+    //auto colorImage = getOpen3DImage(color);
 
-    auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
+    //auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    return three::CreatePointCloudFromRGBDImage(*RGBImage, three::PinholeCameraIntrinsic(
-            depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
+    //return three::CreatePointCloudFromRGBDImage(*RGBImage, three::PinholeCameraIntrinsic(
+    //        depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
+    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
+            depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
 }
 
 class Frame {
@@ -66,7 +77,9 @@ public:
         mColor = getOpenCVImage(const_cast<rs2::frameset*>(&fs)->get_color_frame());
         mIntrinsics = fs.get_profile().as<rs2::video_stream_profile>().get_intrinsics();
     };
-    cv::Mat GetDepthImage(){
+
+    cv::Mat getDepthImage() const
+    {
         return mDepth;
     }
 
@@ -74,12 +87,13 @@ public:
         mDepth = depthImage.clone();
     }
 
-    std::shared_ptr<three::PointCloud> GetPointCloud(){
+    std::shared_ptr<three::PointCloud> getPointCloud() const
+    {
         auto intrin = getIntrin();
-        return PointCloud(mDepth, intrin, mColor);
+        return getOpen3dPointCloud(mDepth, intrin, mColor);
     }
 
-    rs2_intrinsics getIntrin()
+    rs2_intrinsics getIntrin() const
     {
         return mIntrinsics;
     }
@@ -89,19 +103,38 @@ public:
 
 // RS Camera or ROS bag file
 class FrameSource{
+    rs2::context mContext;
     rs2::config mConfig;
     rs2::pipeline mPipe;
-    rs2::context mContext;
 public:
-    FrameSource(std::string bagFilePath){
+
+    FrameSource(std::string bagFilePath):mContext(), mConfig(), mPipe(mContext) {
         mConfig.enable_device_from_file(bagFilePath);
         mPipe.start(mConfig);
-        mContext = rs2::context();
     }
 
     Frame grabFrame(){
         return Frame(mPipe.wait_for_frames());
     }
+};
+
+
+template<typename CODEC_TYPE, typename DATA_TYPE>
+void compressAndDecompress(CODEC_TYPE& codec, const DATA_TYPE& example, DATA_TYPE& rslt)
+{
+    std::stringstream ss;
+    boost::archive::binary_oarchive bo(ss);
+    boost::archive::binary_iarchive bi(ss);
+    codec->compress(example);
+    bo << codec;
+    bi >> codec;
+    codec->decompress(rslt);
+}
+
+// TODO write function that evaluates against a ros bag file
+inline FrameSource LoadRosBag(const std::string& path)
+{
+    return FrameSource(path);
 };
 
 // The CODEC_POLICY is templated as it may be depth based, requiring DATA_TYPE to be cv::Mat
@@ -114,10 +147,12 @@ public:
 
     CodecEvalFramework(std::shared_ptr<CODEC_TYPE> codec):mCodec(codec){};
 
+
+    /// Todo Extract the visualisation to a seperate class
     CompressionMetric evaluateCodecOnExample(const DATA_TYPE& example, bool showArtifacts=true)
     {
         CompressionMetric rslt;
-        rslt.originalSizeInBytes = example.total() * example.elemSize();;
+        rslt.originalSizeInBytes = example.total() * example.elemSize();
 
         /// Evaluate Compression
         rslt.compressionTimer = NamedTimer("Compression");
@@ -141,17 +176,18 @@ public:
         /// Evaluate lossyness
         rslt.meanSquaredError = MSE(example, decompressed);
         rslt.peakSignalToNoise = PSNR(example, decompressed);
-        if(showArtifacts)
+        if(showArtifacts) {
             showCompressionArtifacts(example, decompressed);
-
+            showCompressionArtifacts(example, decompressed);
+        }
         cv::imshow("sdf", decompressed);
 
         return rslt;
     };
 
+    CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<three::PointCloud> pc, bool showArtifacts=true){
 
-    // TODO write function that evaluates against a ros bag file
-    void RosBag(std::string)
-    {
-    };
+        if(showArtifacts)
+            three::DrawGeometries({pc});
+    }
 };
