@@ -1,7 +1,8 @@
 #define BOOST_TEST_MODULE TestCore
 #include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 #include <boost/log/trivial.hpp>
-#include <DepthCodecFactory.h>
+#include "DepthCodecFactory.h"
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -18,10 +19,10 @@
 #define BOOST_LOG_DYN_LINK 1
 
 
-BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec");
-BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
+BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff)
+BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff)
+BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec")
+BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec")
 
 BOOST_AUTO_TEST_CASE(TestMapStream)
 {
@@ -247,16 +248,19 @@ BOOST_AUTO_TEST_CASE(TestLoadRosBag){
     cv::Mat depthImage = frame.getDepthImage();
     cv::Mat rslt;
 
-    compressAndDecompress(codec, depthImage, rslt);
+//    compressAndDecompress(codec, depthImage, rslt);
 
-    frame.updateDepthImage(rslt);
-    three::Visualizer vis;
-    vis.CreateWindow();
+    frame.updateDepthImage(depthImage);
+    open3d::Visualizer vis;
+    //vis.CreateWindow();
     //three::DrawGeometries({});
-    vis.AddGeometry(frame.getPointCloud());
+    auto pc = frame.getPointCloud();
+    //vis.AddGeometry(pc);
+    auto mesh = open3d::CreateMeshCoordinateFrame();
+    vis.AddGeometry(mesh);
     vis.UpdateGeometry();
+    vis.Run();
 
-    cv::waitKey(0);
 }
 
 

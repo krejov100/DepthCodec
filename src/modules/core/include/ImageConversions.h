@@ -29,8 +29,8 @@ inline cv::Mat getOpenCVImage(const rs2::frame& frame){
     return cv::Mat(cv::Size(w, h), CV_8UC3, (void*)frame.get_data(), cv::Mat::AUTO_STEP).clone();
 }
 
-inline three::Image getOpen3DImage(const cv::Mat& frame){
-    three::Image image;
+inline open3d::Image getOpen3DImage(const cv::Mat& frame){
+    open3d::Image image;
     auto type = frame.type();
     if(type == CV_16UC1)
     {
@@ -48,18 +48,18 @@ inline three::Image getOpen3DImage(const cv::Mat& frame){
     image.data_ = std::vector<uint8_t>(frame.datastart, frame.dataend);
 }
 
-inline three::Image getOpen3DImage(const rs2::depth_frame& frame){
+inline open3d::Image getOpen3DImage(const rs2::depth_frame& frame){
     auto data = frame.get_data();
-    three::Image image;
+    open3d::Image image;
     image.PrepareImage(frame.get_width(), frame.get_height(), 1, 2);
     //image.data_.resize(frame.get_width() * frame.get_height() * 2);
     std::copy((uint8_t*)data, (uint8_t*)data + image.data_.size(), image.data_.begin());
     return image;
 }
 
-inline three::Image getOpen3DImage(const rs2::frame& frame){
+inline open3d::Image getOpen3DImage(const rs2::frame& frame){
     auto data = frame.get_data();
-    three::Image image;
+    open3d::Image image;
     image.PrepareImage(frame.as<rs2::video_frame>().get_width(), frame.as<rs2::video_frame>().get_height(), 3, 1);
     std::cout<<image.data_.size()<<std::endl;
     //image.data_.resize(frame.as<rs2::video_frame>() * frame.as<rs2::video_frame>() * 2);

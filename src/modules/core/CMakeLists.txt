@@ -8,10 +8,8 @@ message(STATUS BOOST_ROOT ${BOOST_ROOT})
 find_package (Boost COMPONENTS system program_options log serialization REQUIRED)
 ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
 
-message(STATUS OpenCV_DIR ${OpenCV_DIR})
-find_package (OpenCV 3.4.1 REQUIRED)
-
-message(STATUS ${_opencv_args})
+#find_package (OpenCV 3.4.1 REQUIRED)
+message(STATUS OpenCV_DIR ${OpenCV_FOUND})
 
 add_library(Core STATIC
 		include/CodecEvalFramework.h
@@ -30,16 +28,18 @@ add_library(Core STATIC
 		include/Marshaller
 		include/BoostMarshaller
 		include/ReadWrite
+		include/ImageConversions.h
+		include/DepthCodec.h
 		src/NamedTimer.cpp
 		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
-		include/ImageConversions.h include/DepthCodec.h)
+ )
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
-		SYSTEM PRIVATE  ${realsense_INCLUDE_DIR}
+		SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 	)
@@ -48,7 +48,7 @@ target_link_libraries(Core
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${realsense2_LIBRARY}
 		PUBLIC ${OpenCV_LIBS}
-		PUBLIC Open3D
+		PUBLIC ${Open3D_LIBRARIES}
 	)
 
 install(TARGETS Core EXPORT CoreTargets
@@ -71,13 +71,17 @@ target_include_directories(TestCore
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
-		PUBLIC Core
+		SYSTEM PRIVATE ${GTK3_INCLUDE_DIRS}
+		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	)
+
 target_link_libraries(TestCore
+		PUBLIC Core
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${realsense2_LIBRARY}
-		PUBLIC Open3D
-		PUBLIC Core
+		PUBLIC ${OpenCV_LIBS}
+		PUBLIC ${Open3D_LIBRARIES}
+		PUBLIC ${GTK3_LIBRARIES}
 	)
 
 add_test(TestCore TestCore)
