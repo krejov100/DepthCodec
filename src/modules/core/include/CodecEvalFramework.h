@@ -42,17 +42,17 @@ public:
     void printPerformance(std::ostream& ostream) const;
 };
 
-inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
+inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
     auto depthImage = getOpen3DImage(depth);
     //auto colorImage = getOpen3DImage(color);
 
     //auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
+    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin.ppy));
 }
 
-inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
+inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
     auto depthImage = getOpen3DImage(depth);
     //auto colorImage = getOpen3DImage(color);
 
@@ -60,7 +60,7 @@ inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const rs2::depth_
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
     //return three::CreatePointCloudFromRGBDImage(*RGBImage, three::PinholeCameraIntrinsic(
     //        depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
-    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
+    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
 }
 
@@ -87,7 +87,7 @@ public:
         mDepth = depthImage.clone();
     }
 
-    std::shared_ptr<open3d::PointCloud> getPointCloud() const
+    std::shared_ptr<three::PointCloud> getPointCloud() const
     {
         auto intrin = getIntrin();
         return getOpen3dPointCloud(mDepth, intrin, mColor);
@@ -185,9 +185,9 @@ public:
         return rslt;
     };
 
-    CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<open3d::PointCloud> pc, bool showArtifacts=true){
+    CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<three::PointCloud> pc, bool showArtifacts=true){
 
         if(showArtifacts)
-            open3d::DrawGeometries({pc});
+            three::DrawGeometries({pc});
     }
 };
