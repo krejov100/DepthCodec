@@ -1,10 +1,14 @@
 cmake_minimum_required (VERSION 3.0.0)
 
+project(DepthCodec VERSION 1.0.0 DESCRIPTION "Compression of Depth")
+
 option (USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
+cmake_policy(SET CMP0074 NEW)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 MESSAGE(STATUS ${CMAKE_CXX_COMPILER_ID})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -14,7 +18,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     endif()
 endif()
 
-MESSAGE(STATUS ${USE_SUPERBUILD})
+MESSAGE(STATUS "USE_SUPERBUILD = ${USE_SUPERBUILD}")
 
 if (USE_SUPERBUILD)
     project (SUPERBUILD NONE)
@@ -23,11 +27,11 @@ if (USE_SUPERBUILD)
     include (cmake/SuperBuild.cmake)
     return()                      # stop processing this file further
 else()
-    if(USE_IDE)
-        set(BOOST_ROOT ${CMAKE_BINARY_DIR}/Dependencies/Source/ep_boost)
-        MESSAGE(STATUS "OpenCV Headers ${OpenCV_INCLUDE_DIRS}")
-        MESSAGE(STATUS "OpenCV Libs ${OpenCV_LIBRARY_DIR}")
-    endif()
+    #if(USE_IDE)
+    #    MESSAGE(STATUS "OpenCV Headers ${OpenCV_INCLUDE_DIRS}")
+    #    MESSAGE(STATUS "OpenCV Libs ${OpenCV_LIBRARY_DIR}")
+			
+    #endif()
     project(DepthCodec)
 endif()
 
@@ -57,9 +61,15 @@ if(NOT REALSENSE2_FOUND)
 endif()
 
 #requires Open3D
-set(Open3D_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Open3D-master/build/CMakeFiles")
-find_package(Open3D REQUIRED HINTS ${Open3D_DIR})
-MESSAGE(STATUS Open3D Headers"${Open3D_INCLUDE_DIRS}")
+#set(Boost_USE_STATIC_LIBS ON)
+#message(STATUS BOOST_ROOT ${BOOST_ROOT})
+#find_package (Boost COMPONENTS system program_options log serialization REQUIRED)
+#ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
+
+#requires Open3D
+#MESSAGE(STATUS "Looking in for Open3D ${INSTALL_DEPENDENCIES_DIR}/Open3D/CMake")
+#find_package(Open3D REQUIRED HINTS ${INSTALL_DEPENDENCIES_DIR}/Open3D/CMake)
+#MESSAGE(STATUS Open3D Headers"${Open3D_INCLUDE_DIRS}")
 
 
 #pkg_check_modules(GTK3 REQUIRED gtk+-3.0)

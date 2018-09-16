@@ -2,16 +2,13 @@
 #example slide 24
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
-set(Boost_USE_STATIC_LIBS ON)
 
-message(STATUS BOOST_ROOT ${BOOST_ROOT})
-find_package (Boost COMPONENTS system program_options log serialization REQUIRED)
-ADD_DEFINITIONS(-BOOST_ALL_DYN_LINK)
+message(STATUS "${OpenCV_DIR}")
+find_package (OpenCV 3)
+find_package( Boost COMPONENTS system program_options log serialization REQUIRED )
 
-#find_package (OpenCV 3.4.1 REQUIRED)
-message(STATUS OpenCV_DIR ${OpenCV_FOUND})
 
-add_library(Core STATIC
+add_library(Core SHARED
 		include/CodecEvalFramework.h
 		include/DepthCodecFactory.h
 		include/Factory.h
@@ -36,21 +33,24 @@ add_library(Core STATIC
 		src/CodecEvalFramework.cpp
  )
 
+set_target_properties(Core PROPERTIES VERSION ${PROJECT_VERSION})
+
+
 target_include_directories(Core
-		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		###SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIR}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
 		#SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
-		SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
+		#SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 	)
 
 target_link_libraries(Core
-		PUBLIC ${Boost_LIBRARIES}
-		#PUBLIC ${realsense2_LIBRARY}
-		PUBLIC ${REALSENSE2_FOUND}
+		###PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
-		PUBLIC ${Open3D_LIBRARIES}
+		#PUBLIC ${REALSENSE2_FOUND}
+		#PUBLIC ${realsense2_LIBRARY}
 	)
 
 install(TARGETS Core EXPORT CoreTargets
@@ -70,22 +70,22 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/bgExampleDepth.tif  ${CMAKE
 add_executable(TestCore test/TestCore.cpp)
 
 target_include_directories(TestCore
-		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		PUBLIC Core
+		###SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
-		#SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
-		SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
-		SYSTEM PRIVATE ${GTK3_INCLUDE_DIRS}
-		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		#SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
+		#SYSTEM PRIVATE ${GTK3_INCLUDE_DIRS}
 	)
 
 target_link_libraries(TestCore
 		PUBLIC Core
-		PUBLIC ${Boost_LIBRARIES}
+		#PUBLIC ${Boost_LIBRARIES}
+		#PUBLIC ${OpenCV_LIBS}
+		#PUBLIC ${Open3D_LIBRARIES}
 		#PUBLIC ${realsense2_LIBRARY}
-		PUBLIC ${REALSENSE2_FOUND}
-		PUBLIC ${OpenCV_LIBS}
-		PUBLIC ${Open3D_LIBRARIES}
-		PUBLIC ${GTK3_LIBRARIES}
+		#PUBLIC ${REALSENSE2_FOUND}
+		#PUBLIC ${GTK3_LIBRARIES}
 	)
 
 add_test(TestCore TestCore)

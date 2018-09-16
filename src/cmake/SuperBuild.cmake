@@ -17,10 +17,7 @@ set( BUILD_TYPE ${CMAKE_BUILD_TYPE} )
 if( NOT INSTALL_DEPENDENCIES_DIR )
   set( INSTALL_DEPENDENCIES_DIR ${CMAKE_BINARY_DIR}/INSTALL CACHE STRING "Install directory for dependencies")
 endif()
-set( Patches_DIR ${CMAKE_CURRENT_SOURCE_DIR}/patches )
 set( DepthCodec_DEPENDENCIES )
-
-set_property (DIRECTORY PROPERTY EP_BASE Dependencies)
 
 ####################
 ###############Depnds
@@ -32,70 +29,39 @@ option( USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead
         set(git_protocol "http")
 	endif()
 
-option( USE_SYSTEM_Boost "Use system libraries for Boost" OFF )
-if( ${USE_SYSTEM_Boost} MATCHES "OFF" )
-  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Boost.cmake)
-  set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Boost )
-else()
-  find_package( Boost REQUIRED )
-endif()
+###include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Boost.cmake)
+###set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Boost )
+####list (APPEND EXTRA_CMAKE_ARGS
+###	-DBOOST_ROOT=${BOOST_ROOT}
+###-DBoost_NO_SYSTEM_PATHS=ON
+###)
 
-option( USE_SYSTEM_OpenCV "Use system libraries for OpenCV" OFF )
-if( ${USE_SYSTEM_OpenCV} MATCHES "OFF" )
-  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-OpenCV.cmake)
-  set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} OpenCV )
-else()
-  find_package( OpenCV REQUIRED )
-endif()
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-OpenCV.cmake)
+set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} OpenCV )
+list (APPEND EXTRA_CMAKE_ARGS
+	-DOpenCV_DIR=${OpenCV_DIR}
+)
 
-option( USE_SYSTEM_Open3D "Use system libraries for Open3D" OFF )
-if( ${USE_SYSTEM_Open3D} MATCHES "OFF" )
-  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Open3D.cmake)
-  set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Open3D )
-else()
-  find_package( Open3D REQUIRED )
-endif()
+#option( USE_SYSTEM_Open3D "Use system libraries for Open3D" OFF )
+#if( ${USE_SYSTEM_Open3D} MATCHES "OFF" )
+#  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Open3D.cmake)
+#  set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Open3D )
+#else()
+#  find_package( Open3D REQUIRED )
+#endif()
 
+MESSAGE(STATUS "Now Configuring DepthCodec for Superbuild")
+MESSAGE(STATUS "EXTRA_CMAKE_ARGS: ${EXTRA_CMAKE_ARGS}")
+
+#Pass in to the DepthCodec the variables that are found by either find_package or created by External-"Depnd"
 ExternalProject_Add (DepthCodec
-        DEPENDS ${DepthCodec_DEPENDENCIES}
+		DEPENDS ${DepthCodec_DEPENDENCIES}
         SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../src
-        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/DepthCodec
-        CMAKE_GENERATOR ${EP_CMAKE_GENERATOR}
-        CMAKE_ARGS
-        ${ep_common_args}
-        -DUSE_SUPERBUILD=OFF
-        #-DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE}
-        #-DBoost_INCLUDE_DIR:PATH=${Boost_INCLUDE_DIR}
-        #-DBOOST_ROOT:PATH=${BOOST_ROOT}
-        #-DINSTALL_DEPENDENCIES_DIR:PATH=${INSTALL_DEPENDENCIES_DIR}
-        INSTALL_COMMAND ""
+        #CMAKE_GENERATOR ${gen}
+        CMAKE_ARGS 
+		-DUSE_SUPERBUILD=OFF 
+		-DINSTALL_DEPENDENCIES_DIR=${INSTALL_DEPENDENCIES_DIR}
+		${EXTRA_CMAKE_ARGS}
+		INSTALL_COMMAND ""
+		BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/DepthCodec
         )
-
-####################
-##############OPENCV
-####################
-
-#list (APPEND DEPENDENCIES ep_opencv)
-#set(OpenCV_TAG "3.4.1")
-#ExternalProject_Add(ep_opencv
-#        GIT_REPOSITORY "http://github.com/Itseez/opencv.git"
-#        GIT_TAG "${OpenCV_TAG}"
-#        SOURCE_DIR opencv
-#        BINARY_DIR opencv-build
-#        CMAKE_GENERATOR ${gen}
-#        CMAKE_ARGS
-#        ${ep_common_args}
-#        -DBUILD_DOCS:BOOL=FALSE
-#        -DBUILD_EXAMPLES:BOOL=FALSE
-#        -DBUILD_TESTS:BOOL=FALSE
-#        -DBUILD_SHARED_LIBS:BOOL=TRUE
-#        -DWITH_CUDA:BOOL=FALSE
-#        -DWITH_FFMPEG:BOOL=FALSE
-#        -DBUILD_PERF_TESTS:BOOL=FALSE
-#        INSTALL_COMMAND ""
-#        )
-
-#set(OpenCV_DIR ${CMAKE_BINARY_DIR}/opencv-build CACHE PATH opencv root dir)
-
-#list (APPEND EXTRA_CMAKE_ARGS
- #       -DOpenCV_DIR=${CMAKE_BINARY_DIR}/opencv-build)

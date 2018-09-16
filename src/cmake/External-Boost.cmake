@@ -47,23 +47,15 @@ elseif(${BUILD_SHARED_LIBS} MATCHES ON)
     set(BUILD_LIBS "shared")
 endif()
 
-if(USE_IDE)
-else()
 ExternalProject_Add(Boost
         BUILD_IN_SOURCE 1
         URL ${Boost_url}
         URL_MD5 ${Boost_md5}
         UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ${Boost_Bootstrap_Command} --prefix=${INSTALL_DEPENDENCIES_DIR}/lib
-        BUILD_COMMAND ${Boost_b2_Command} install -j8   --prefix=${INSTALL_DEPENDENCIES_DIR} --with-log --with-program_options --with-system address-model=${Boost_address_model} link=static,shared ${boost_toolset}
+        CONFIGURE_COMMAND ${Boost_Bootstrap_Command} #--prefix=${INSTALL_DEPENDENCIES_DIR}/Boost/lib
+        BUILD_COMMAND ${Boost_b2_Command} install -j8 --prefix=${INSTALL_DEPENDENCIES_DIR}/Boost --with-log --with-serialization --with-program_options --with-system address-model=${Boost_address_model} link=static,shared ${boost_toolset}
         INSTALL_COMMAND ""
         )
-endif()
-if( WIN32 )
-    set( Boost_INCLUDE_DIR ${INSTALL_DEPENDENCIES_DIR}/include/boost-1_59 )
-    set( BOOST_ROOT ${INSTALL_DEPENDENCIES_DIR} )
-else()
-    set( Boost_INCLUDE_DIR ${INSTALL_DEPENDENCIES_DIR}/include )
-endif()
-
-set( Boost_LIBRARY_DIR ${INSTALL_DEPENDENCIES_DIR}/lib )
+		
+MESSAGE(STATUS "Boost install prefix: ${INSTALL_DEPENDENCIES_DIR}/Boost")
+set( BOOST_ROOT ${INSTALL_DEPENDENCIES_DIR}/Boost)
