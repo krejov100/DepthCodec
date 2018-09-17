@@ -3,7 +3,7 @@
 //
 
 #include "NamedTimer.h"
-#include <boost/log/trivial.hpp>
+#include <iostream>
 #include <boost/timer.hpp>
 
 NamedTimer::NamedTimer(const std::string& name):mName(name){};

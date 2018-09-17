@@ -33,6 +33,8 @@ add_library(Core SHARED
 		src/CodecEvalFramework.cpp
  )
 
+MESSAGE(${REALSENSE2_FOUND})
+
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIR}
@@ -44,9 +46,12 @@ target_include_directories(Core
 	)
 
 target_link_libraries(Core
+		PUBLIC -lpthread
+		PUBLIC -fopenmp
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
-		#PUBLIC ${REALSENSE2_FOUND}
+		PUBLIC ${Open3D_LIBRARIES}
+		PUBLIC ${REALSENSE2_FOUND}
 		#PUBLIC ${realsense2_LIBRARY}
 	)
 
@@ -77,11 +82,11 @@ target_include_directories(TestCore
 
 target_link_libraries(TestCore
 		PUBLIC Core
-		#PUBLIC ${Boost_LIBRARIES}
-		#PUBLIC ${OpenCV_LIBS}
-		#PUBLIC ${Open3D_LIBRARIES}
+		PUBLIC ${Boost_LIBRARIES}
+		PUBLIC ${OpenCV_LIBS}
+		PUBLIC ${Open3D_LIBRARIES}
 		#PUBLIC ${realsense2_LIBRARY}
-		#PUBLIC ${REALSENSE2_FOUND}
+		PUBLIC ${REALSENSE2_FOUND}
 		#PUBLIC ${GTK3_LIBRARIES}
 	)
 

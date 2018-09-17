@@ -1,5 +1,6 @@
 #define BOOST_TEST_MODULE TestCore
 #include <boost/test/included/unit_test.hpp>
+#define BOOST_LOG_DYN_LINK 1
 #include <boost/log/trivial.hpp>
 #include <DepthCodecFactory.h>
 #include <boost/serialization/export.hpp>
@@ -15,7 +16,7 @@
 #include "ReadWrite.h"
 #include "Range.h"
 #include "BoostMarshaller.hpp"
-#define BOOST_LOG_DYN_LINK 1
+
 
 
 BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
@@ -250,13 +251,13 @@ BOOST_AUTO_TEST_CASE(TestLoadRosBag){
     compressAndDecompress(codec, depthImage, rslt);
 
     frame.updateDepthImage(rslt);
-    three::Visualizer vis;
-    vis.CreateWindow();
-    //three::DrawGeometries({});
-    vis.AddGeometry(frame.getPointCloud());
-    vis.UpdateGeometry();
+    open3d::Visualizer vis;
 
-    cv::waitKey(0);
+    open3d::DrawGeometries({frame.getPointCloud()});
+    //vis.AddGeometry(frame.getPointCloud());
+    //vis.UpdateGeometry();
+
+    //cv::waitKey(0);
 }
 
 

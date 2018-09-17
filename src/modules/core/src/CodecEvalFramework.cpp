@@ -4,7 +4,6 @@
 
 #include "CodecEvalFramework.h"
 #include "opencv2/opencv.hpp"
-#include <boost/log/trivial.hpp>
 
 ///Mean Squared Error
 double MSE(const cv::Mat& original, const cv::Mat& transformed){

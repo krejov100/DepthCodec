@@ -62,5 +62,6 @@ ExternalProject_Add (DepthCodec
 		-DINSTALL_DEPENDENCIES_DIR=${INSTALL_DEPENDENCIES_DIR}
 		${EXTRA_CMAKE_ARGS}
 		INSTALL_COMMAND ""
+		BUILD_COMMAND cmake --build . -- -lboost_log_setup
 		BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/DepthCodec
         )

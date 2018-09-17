@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.0)
+cmake_minimum_required (VERSION 3.12.0)
 
 project(DepthCodec VERSION 1.0.0 DESCRIPTION "Compression of Depth")
 
@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 MESSAGE(STATUS ${CMAKE_CXX_COMPILER_ID})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "7.3")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.4")
         message(FATAL_ERROR "Insufficient gcc version")
     endif()
 endif()
