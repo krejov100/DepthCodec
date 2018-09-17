@@ -5,8 +5,8 @@
 
 message(STATUS "${OpenCV_DIR}")
 find_package (OpenCV 3)
-find_package( Boost COMPONENTS system program_options log serialization REQUIRED )
-
+find_package(Boost COMPONENTS system program_options log serialization REQUIRED)
+find_package(Open3D REQUIRED)
 
 add_library(Core SHARED
 		include/CodecEvalFramework.h
@@ -33,21 +33,18 @@ add_library(Core SHARED
 		src/CodecEvalFramework.cpp
  )
 
-set_target_properties(Core PROPERTIES VERSION ${PROJECT_VERSION})
-
-
 target_include_directories(Core
-		###SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIR}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
 		#SYSTEM PRIVATE ${realsense_INCLUDE_DIR}
-		#SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 	)
 
 target_link_libraries(Core
-		###PUBLIC ${Boost_LIBRARIES}
+		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
 		#PUBLIC ${REALSENSE2_FOUND}
 		#PUBLIC ${realsense2_LIBRARY}
@@ -71,7 +68,7 @@ add_executable(TestCore test/TestCore.cpp)
 
 target_include_directories(TestCore
 		PUBLIC Core
-		###SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
+		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${Open3D_INCLUDE_DIRS}
 		#SYSTEM PRIVATE ${librealsense_INCLUDE_DIRS}

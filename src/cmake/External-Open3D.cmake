@@ -1,10 +1,9 @@
 message(STATUS "External project: Open3D")
 		
 ExternalProject_Add(Open3D
-		BUILD_IN_SOURCE 1
-        GIT_REPOSITORY ${git_protocol}://github.com/IntelVCL/Open3D
+		GIT_REPOSITORY ${git_protocol}://github.com/IntelVCL/Open3D
         SOURCE_DIR Open3D
-        #BINARY_DIR open3d-build
+		BINARY_DIR ${INSTALL_DEPENDENCIES_DIR}/Open3D
         UPDATE_COMMAND ""
         PATCH_COMMAND ""
         CMAKE_GENERATOR ${gen}
@@ -13,7 +12,9 @@ ExternalProject_Add(Open3D
     )
 
 MESSAGE(STATUS "Open3D install prefix: ${INSTALL_DEPENDENCIES_DIR}/Open3D")
-	
+
+set(Open3D_ROOT ${INSTALL_DEPENDENCIES_DIR}/Open3D)	
+
 #set(OPEN3D_INCLUDE_DIR ${CMAKE_BINARY_DIR}/include/)
 #if(NOT WIN32)
 #    set(OPEN3D_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib/)

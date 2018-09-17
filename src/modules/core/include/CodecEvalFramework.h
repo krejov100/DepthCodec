@@ -11,7 +11,6 @@
 #include <Visualization/Visualization.h>
 #include <Geometry/Geometry.h>
 #include <PinholeCameraIntrinsic.h>
-#include <Core/Core.h>
 #include "NamedTimer.h"
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
@@ -42,25 +41,25 @@ public:
     void printPerformance(std::ostream& ostream) const;
 };
 
-inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
+inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
     auto depthImage = getOpen3DImage(depth);
     //auto colorImage = getOpen3DImage(color);
 
-    //auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
+    //auto RGBImage = open3d::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
+    open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin.ppy));
 }
 
-inline std::shared_ptr<three::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
+inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
     auto depthImage = getOpen3DImage(depth);
     //auto colorImage = getOpen3DImage(color);
 
-    //auto RGBImage = three::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
+    //auto RGBImage = open3d::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    //return three::CreatePointCloudFromRGBDImage(*RGBImage, three::PinholeCameraIntrinsic(
+    //return open3d::CreatePointCloudFromRGBDImage(*RGBImage, open3d::PinholeCameraIntrinsic(
     //        depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
-    three::CreatePointCloudFromDepthImage(depthImage, three::PinholeCameraIntrinsic(
+    open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
 }
 
@@ -87,7 +86,7 @@ public:
         mDepth = depthImage.clone();
     }
 
-    std::shared_ptr<three::PointCloud> getPointCloud() const
+    std::shared_ptr<open3d::PointCloud> getPointCloud() const
     {
         auto intrin = getIntrin();
         return getOpen3dPointCloud(mDepth, intrin, mColor);
@@ -185,9 +184,9 @@ public:
         return rslt;
     };
 
-    CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<three::PointCloud> pc, bool showArtifacts=true){
+    CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<open3d::PointCloud> pc, bool showArtifacts=true){
 
         if(showArtifacts)
-            three::DrawGeometries({pc});
+            open3d::DrawGeometries({pc});
     }
 };

@@ -29,26 +29,25 @@ option( USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead
         set(git_protocol "http")
 	endif()
 
-###include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Boost.cmake)
-###set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Boost )
-####list (APPEND EXTRA_CMAKE_ARGS
-###	-DBOOST_ROOT=${BOOST_ROOT}
-###-DBoost_NO_SYSTEM_PATHS=ON
-###)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Boost.cmake)
+set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Boost )
+list (APPEND EXTRA_CMAKE_ARGS
+	-DBOOST_ROOT=${BOOST_ROOT}
+	-DBoost_NO_SYSTEM_PATHS=ON
+)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-OpenCV.cmake)
 set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} OpenCV )
 list (APPEND EXTRA_CMAKE_ARGS
 	-DOpenCV_DIR=${OpenCV_DIR}
+	-DCMAKE_PREFIX_PATH=${OpenCV_DIR} 
 )
 
-#option( USE_SYSTEM_Open3D "Use system libraries for Open3D" OFF )
-#if( ${USE_SYSTEM_Open3D} MATCHES "OFF" )
-#  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Open3D.cmake)
-#  set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Open3D )
-#else()
-#  find_package( Open3D REQUIRED )
-#endif()
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Open3D.cmake)
+set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Open3D )
+list (APPEND EXTRA_CMAKE_ARGS
+	-DOpen3D_ROOT=${Open3D_ROOT}
+)
 
 MESSAGE(STATUS "Now Configuring DepthCodec for Superbuild")
 MESSAGE(STATUS "EXTRA_CMAKE_ARGS: ${EXTRA_CMAKE_ARGS}")

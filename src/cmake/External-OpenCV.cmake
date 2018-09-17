@@ -3,7 +3,7 @@ message(STATUS "External project: OpenCV")
 ExternalProject_Add(OpenCV
 		GIT_REPOSITORY ${git_protocol}://github.com/cedricve/opencv
         SOURCE_DIR opencv
-        BINARY_DIR opencv-build
+        BINARY_DIR ${INSTALL_DEPENDENCIES_DIR}/OpenCV
         UPDATE_COMMAND ""
         PATCH_COMMAND ""
         CMAKE_GENERATOR ${gen}
@@ -17,8 +17,8 @@ ExternalProject_Add(OpenCV
         -DBUILD_WITH_DEBUG_INFO=OFF
         -DBUILD_PACKAGE:BOOL=OFF
         -DBUILD_opencv_core=ON
-        -DBUILD_opencv_imgproc=OFF #
-        -DBUILD_opencv_highgui=OFF #
+        -DBUILD_opencv_imgproc=ON #
+        -DBUILD_opencv_highgui=ON #
         -DBUILD_opencv_video=OFF
         -DBUILD_opencv_apps=OFF
         -DBUILD_opencv_flann=OFF
@@ -45,12 +45,13 @@ ExternalProject_Add(OpenCV
         -DWITH_FFMPEG:BOOL=ON
         -DWITH_CUDA=OFF
         -DWITH_IPP:BOOL=OFF
-        -DBUILD_PNG:BOOL=OFF #
-        -DBUILD_JPEG:BOOL=OFF #
-        -DBUILD_ZLIB:BOOL=OFF # 
+        -DBUILD_PNG:BOOL=ON #
+        -DBUILD_JPEG:BOOL=ON #
+        -DBUILD_ZLIB:BOOL=ON # 
         -DBUILD_WITH_STATIC_CRT:BOOL=OFF
         -DBUILD_FAT_JAVA_LIB=OFF
-        -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DEPENDENCIES_DIR}/OpenCV
+        #-DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DEPENDENCIES_DIR}/OpenCV
+		INSTALL_COMMAND ""
     )
 
 MESSAGE(STATUS "OpenCV install prefix: ${INSTALL_DEPENDENCIES_DIR}/OpenCV")

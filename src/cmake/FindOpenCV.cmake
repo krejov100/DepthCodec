@@ -82,6 +82,8 @@
 # let's skip module mode, and see if a OpenCVConfig.cmake file is around
 # this searches in system directories and ${OpenCV_DIR}
 
+MESSAGE(STATUS "Inside FindOpenCV.cmake ${OpenCV_DIR}")
+
 include(FindPackageHandleStandardArgs)
 
 set(_OpenCV_FIND_QUIETLY ${OpenCV_FIND_QUIETLY})
