@@ -33,7 +33,7 @@ add_library(Core SHARED
 		src/CodecEvalFramework.cpp
  )
 
-MESSAGE(${REALSENSE2_FOUND})
+MESSAGE(${Boost_LIBRARIES})
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
