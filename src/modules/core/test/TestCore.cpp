@@ -16,7 +16,7 @@
 #include "ReadWrite.h"
 #include "Range.h"
 #include "BoostMarshaller.hpp"
-
+#include "Core/Registration/Registration.h"
 
 
 BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
@@ -26,7 +26,7 @@ BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
 
 
 BOOST_AUTO_TEST_CASE(TestLoadRosBag){
-        auto fs = LoadRosBag("/home/philip/Downloads/structured.bag");
+        auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
 
         auto originalFrame = fs.grabFrame();
 
@@ -47,6 +47,7 @@ BOOST_AUTO_TEST_CASE(TestLoadRosBag){
         compressedFrame.updateDepthImage(rslt);
 
         showPointCloudCompression(originalFrame, compressedFrame);
+
 }
 
 

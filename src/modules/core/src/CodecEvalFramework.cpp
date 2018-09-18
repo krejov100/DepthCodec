@@ -47,14 +47,20 @@ void showDifferanceImage(const cv::Mat& original, const cv::Mat& transformed){
     cv::imshow("Difference Image", colorDiffImage);
 }
 
-void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame){
+void showPointCloudCompression(std::shared_ptr<open3d::PointCloud> originalPC, std::shared_ptr<open3d::PointCloud> compressedPC){
+    auto coloredOriginalPC = std::make_shared<open3d::PointCloud>(*originalPC);
+    coloredOriginalPC->PaintUniformColor({1, 0.706, 0});
 
+    auto coloredCompressedPC = std::make_shared<open3d::PointCloud>(*compressedPC);
+    coloredCompressedPC->PaintUniformColor({0, 0.651, 0.929});
+
+    auto rslt = open3d::EvaluateRegistration(*originalPC, *compressedPC, 1);
+    open3d::DrawGeometries({coloredOriginalPC, coloredCompressedPC});
+}
+void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame){
     auto originalPC = originalFrame.getPointCloud();
     auto compressedPC = compressedFrame.getPointCloud();
-    originalPC->PaintUniformColor({1, 0.706, 0});
-    compressedPC->PaintUniformColor({0, 0.651, 0.929});
-
-    open3d::DrawGeometries({originalPC, compressedPC});
+    showPointCloudCompression(originalPC, compressedPC);
 }
 
 void showCompressionArtifacts(const cv::Mat& original, const cv::Mat& compressed){
@@ -77,6 +83,8 @@ void CompressionMetric::printPerformance(std::ostream& ostream) const
     decompressionTimer.printTimer(ostream);
     ostream << "Time asymmetry compression/decompression: " << compressionTimer.getTime() / decompressionTimer.getTime() << std::endl;
 
-    ostream << "Compression MSE: " << meanSquaredError << " PSNR: " << peakSignalToNoise << std::endl;
+    ostream << "Compression MSE: " << meanSquaredError << " PSNR: " << peakSignalToNoise <<  " pointCloudInlierRMS: " << pointCloudInlierRMS << std::endl;
+
+
 
 }

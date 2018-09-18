@@ -65,4 +65,11 @@ public:
     }
 };
 
+// TODO write function that evaluates against a ros bag file
+inline FrameSource LoadRosBag(const std::string& path)
+{
+    return FrameSource(path);
+};
+
+
 #endif //DEPTHCODEC_FRAME_H
