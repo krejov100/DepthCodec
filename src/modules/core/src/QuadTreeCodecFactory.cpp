@@ -9,7 +9,7 @@
 QuadTreeCodecFactory::QuadTreeCodecFactory(const po::variables_map& options):DepthCodecFactory(options){};
 
 std::shared_ptr<IDepthCodec> QuadTreeCodecFactory::construct(){
-    return std::make_shared<RollingQT32bitMinMaxAbsDiff>(AbsDiffPolicy(30 * (65536/255)));
+    return std::make_shared<RollingQT32bitMinMaxAbsDiff>(AbsDiffPolicy(3 * (65536/255)));
 }
 
 po::options_description QuadTreeCodecFactory::getOptions(){

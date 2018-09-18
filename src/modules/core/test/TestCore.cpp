@@ -24,6 +24,45 @@ BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
 BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec");
 BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
 
+
+BOOST_AUTO_TEST_CASE(TestLoadRosBag){
+        auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
+
+        auto frame = fs.grabFrame();
+
+        boost::program_options::variables_map compressionOptions;
+        compressionOptions.insert(std::make_pair("CodecType", po::variable_value(std::string("QuadTree"), false)));
+        po::notify(compressionOptions);
+        auto codecFactory = std::make_shared<DepthCodecFactory>(compressionOptions);
+        codecFactory->registerSubFactory("QuadTree", std::make_shared<QuadTreeCodecFactory>(compressionOptions));
+
+        auto codec = std::make_shared<TiledCodec>(codecFactory);
+
+        cv::Mat depthImage = frame.getDepthImage();
+
+
+
+        cv::Mat rslt;
+
+        compressAndDecompress(codec, depthImage, rslt);
+
+        cv::imshow("dere",rslt);
+        cv::waitKey(0);
+
+        frame.updateDepthImage(rslt);
+        open3d::Visualizer vis;
+
+        //auto pc = std::make_shared< open3d::Image >(getOpen3DImage(frame.getDepthImage()));
+        auto pc = frame.getPointCloud();
+        open3d::DrawGeometries({pc});
+        //open3d::DrawGeometries({pc}, "Image", pc->width_, pc->height_);
+        //vis.AddGeometry(frame.getPointCloud());
+        //vis.UpdateGeometry();
+
+        //cv::waitKey(0);
+}
+
+
 BOOST_AUTO_TEST_CASE(TestMapStream)
 {
     std::map<int, std::string> test{ {2, "hello"}, {3,"world" } }, rslt;
@@ -231,41 +270,5 @@ BOOST_AUTO_TEST_CASE(TestCodecFactory){
 
     cv::waitKey(0);
 }
-
-BOOST_AUTO_TEST_CASE(TestLoadRosBag){
-    auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
-
-    auto frame = fs.grabFrame();
-
-    boost::program_options::variables_map compressionOptions;
-    compressionOptions.insert(std::make_pair("CodecType", po::variable_value(std::string("QuadTree"), false)));
-    po::notify(compressionOptions);
-    auto codecFactory = std::make_shared<DepthCodecFactory>(compressionOptions);
-    codecFactory->registerSubFactory("QuadTree", std::make_shared<QuadTreeCodecFactory>(compressionOptions));
-
-    auto codec = std::make_shared<TiledCodec>(codecFactory);
-
-    cv::Mat depthImage = frame.getDepthImage();
-    cv::Mat rslt;
-
-    compressAndDecompress(codec, depthImage, rslt);
-
-    frame.updateDepthImage(rslt);
-    open3d::Visualizer vis;
-
-    open3d::DrawGeometries({frame.getPointCloud()});
-    //vis.AddGeometry(frame.getPointCloud());
-    //vis.UpdateGeometry();
-
-    //cv::waitKey(0);
-}
-
-
-BOOST_AUTO_TEST_CASE(TestCompressionFactory){
-    std::cout<< DepthCodecFactory().getOptions();
-
-
-}
-
 
 //BOOST_CLASS_EXPORT(Tree)

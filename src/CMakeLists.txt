@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12.0)
+cmake_minimum_required (VERSION 3.10.0)
 
 project(DepthCodec VERSION 1.0.0 DESCRIPTION "Compression of Depth")
 
@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -v")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
-cmake_policy(SET CMP0074 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 

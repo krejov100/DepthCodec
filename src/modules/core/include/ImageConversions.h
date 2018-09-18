@@ -45,7 +45,8 @@ inline open3d::Image getOpen3DImage(const cv::Mat& frame){
         throw std::runtime_error("getOpen3DImage: dont know how to deal with this type of image");
     }
 
-    image.data_ = std::vector<uint8_t>(frame.datastart, frame.dataend);
+    std::copy(frame.datastart, frame.dataend, image.data_.begin());
+    return image;
 }
 
 inline open3d::Image getOpen3DImage(const rs2::depth_frame& frame){

@@ -47,7 +47,7 @@ inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const cv::Mat& de
 
     //auto RGBImage = open3d::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
+    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin.ppy));
 }
 
@@ -59,7 +59,7 @@ inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const rs2::depth_
     ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
     //return open3d::CreatePointCloudFromRGBDImage(*RGBImage, open3d::PinholeCameraIntrinsic(
     //        depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
-    open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
+    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
             depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
 }
 
@@ -73,7 +73,7 @@ public:
     Frame(const rs2::frameset& fs){
         mDepth = getOpenCVImage(fs.get_depth_frame());
         // todo recompile LibRS removing the need for the const cast
-        mColor = getOpenCVImage(const_cast<rs2::frameset*>(&fs)->get_color_frame());
+        //mColor = getOpenCVImage(const_cast<rs2::frameset*>(&fs)->get_color_frame());
         mIntrinsics = fs.get_profile().as<rs2::video_stream_profile>().get_intrinsics();
     };
 
@@ -89,7 +89,7 @@ public:
     std::shared_ptr<open3d::PointCloud> getPointCloud() const
     {
         auto intrin = getIntrin();
-        return getOpen3dPointCloud(mDepth, intrin, mColor);
+        return getOpen3dPointCloud(mDepth, intrin);
     }
 
     rs2_intrinsics getIntrin() const
