@@ -6,18 +6,13 @@
 #include <vector>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-#include <Core/Core.h>
-#include <IO/IO.h>
-#include <Visualization/Visualization.h>
-#include <Geometry/Geometry.h>
 #include <PinholeCameraIntrinsic.h>
 #include "NamedTimer.h"
-#include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "DataStream.hpp"
 #include "iostream"
-#include "ImageConversions.h"
 #include "DepthCodec.h"
+#include "Frame.h"
 
 
 /// This is an interface for a compressable object
@@ -27,6 +22,7 @@
 double MSE(const cv::Mat& original, const cv::Mat& transformed);
 double PSNR(const cv::Mat& original, const cv::Mat& transformed);
 void showCompressionArtifacts(const cv::Mat& original, const cv::Mat& compressed);
+void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame);
 
 class CompressionMetric{
 public:
@@ -40,83 +36,6 @@ public:
 
     void printPerformance(std::ostream& ostream) const;
 };
-
-inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const cv::Mat& depth, const rs2_intrinsics& intrin,  const cv::Mat& color = cv::Mat()){
-    auto depthImage = getOpen3DImage(depth);
-    //auto colorImage = getOpen3DImage(color);
-
-    //auto RGBImage = open3d::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
-    ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
-            depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin.ppy));
-}
-
-inline std::shared_ptr<open3d::PointCloud> getOpen3dPointCloud(const rs2::depth_frame& depth, const rs2_intrinsics intrin, const rs2::frame& color){
-    auto depthImage = getOpen3DImage(depth);
-    //auto colorImage = getOpen3DImage(color);
-
-    //auto RGBImage = open3d::CreateRGBDImageFromColorAndDepth(depthImage, colorImage);
-    ///PinholeCameraIntrinsic(int width, int height, double fx, double fy, double cx, double cy);
-    //return open3d::CreatePointCloudFromRGBDImage(*RGBImage, open3d::PinholeCameraIntrinsic(
-    //        depth.get_width(), depth.get_height(), intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
-    return open3d::CreatePointCloudFromDepthImage(depthImage, open3d::PinholeCameraIntrinsic(
-            depthImage.width_, depthImage.height_, intrin.fx, intrin.fy, intrin.ppx, intrin. ppy));
-}
-
-class Frame {
-    rs2::pointcloud mPc;
-    cv::Mat mDepth;
-    cv::Mat mColor;
-    rs2_intrinsics mIntrinsics;
-public:
-
-    Frame(const rs2::frameset& fs){
-        mDepth = getOpenCVImage(fs.get_depth_frame());
-        // todo recompile LibRS removing the need for the const cast
-        //mColor = getOpenCVImage(const_cast<rs2::frameset*>(&fs)->get_color_frame());
-        mIntrinsics = fs.get_profile().as<rs2::video_stream_profile>().get_intrinsics();
-    };
-
-    cv::Mat getDepthImage() const
-    {
-        return mDepth;
-    }
-
-    void updateDepthImage(cv::Mat& depthImage){
-        mDepth = depthImage.clone();
-    }
-
-    std::shared_ptr<open3d::PointCloud> getPointCloud() const
-    {
-        auto intrin = getIntrin();
-        return getOpen3dPointCloud(mDepth, intrin);
-    }
-
-    rs2_intrinsics getIntrin() const
-    {
-        return mIntrinsics;
-    }
-
-    friend class FrameSource;
-};
-
-// RS Camera or ROS bag file
-class FrameSource{
-    rs2::context mContext;
-    rs2::config mConfig;
-    rs2::pipeline mPipe;
-public:
-
-    FrameSource(std::string bagFilePath):mContext(), mConfig(), mPipe(mContext) {
-        mConfig.enable_device_from_file(bagFilePath);
-        mPipe.start(mConfig);
-    }
-
-    Frame grabFrame(){
-        return Frame(mPipe.wait_for_frames());
-    }
-};
-
 
 template<typename CODEC_TYPE, typename DATA_TYPE>
 void compressAndDecompress(CODEC_TYPE& codec, const DATA_TYPE& example, DATA_TYPE& rslt)
@@ -184,9 +103,9 @@ public:
         return rslt;
     };
 
+
+
     CompressionMetric evaluateCodecOnPointCloud(std::shared_ptr<open3d::PointCloud> pc, bool showArtifacts=true){
 
-        if(showArtifacts)
-            open3d::DrawGeometries({pc});
     }
 };

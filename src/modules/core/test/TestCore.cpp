@@ -26,9 +26,9 @@ BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
 
 
 BOOST_AUTO_TEST_CASE(TestLoadRosBag){
-        auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
+        auto fs = LoadRosBag("/home/philip/Downloads/structured.bag");
 
-        auto frame = fs.grabFrame();
+        auto originalFrame = fs.grabFrame();
 
         boost::program_options::variables_map compressionOptions;
         compressionOptions.insert(std::make_pair("CodecType", po::variable_value(std::string("QuadTree"), false)));
@@ -38,28 +38,15 @@ BOOST_AUTO_TEST_CASE(TestLoadRosBag){
 
         auto codec = std::make_shared<TiledCodec>(codecFactory);
 
-        cv::Mat depthImage = frame.getDepthImage();
-
+        cv::Mat depthImage = originalFrame.getDepthImage();
 
 
         cv::Mat rslt;
-
         compressAndDecompress(codec, depthImage, rslt);
+        Frame compressedFrame = originalFrame;
+        compressedFrame.updateDepthImage(rslt);
 
-        cv::imshow("dere",rslt);
-        cv::waitKey(0);
-
-        frame.updateDepthImage(rslt);
-        open3d::Visualizer vis;
-
-        //auto pc = std::make_shared< open3d::Image >(getOpen3DImage(frame.getDepthImage()));
-        auto pc = frame.getPointCloud();
-        open3d::DrawGeometries({pc});
-        //open3d::DrawGeometries({pc}, "Image", pc->width_, pc->height_);
-        //vis.AddGeometry(frame.getPointCloud());
-        //vis.UpdateGeometry();
-
-        //cv::waitKey(0);
+        showPointCloudCompression(originalFrame, compressedFrame);
 }
 
 

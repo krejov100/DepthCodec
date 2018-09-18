@@ -42,7 +42,7 @@ add_library(Core SHARED
 		src/DepthCodecFactory.cpp 
 		src/QuadTreeCodecFactory.cpp
 		src/CodecEvalFramework.cpp
- )
+		include/Frame.h include/PointCloudConversions.h)
 
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}

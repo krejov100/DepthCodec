@@ -4,6 +4,7 @@
 
 #include "CodecEvalFramework.h"
 #include "opencv2/opencv.hpp"
+#include <Visualization/Visualization.h>
 
 ///Mean Squared Error
 double MSE(const cv::Mat& original, const cv::Mat& transformed){
@@ -44,6 +45,16 @@ void showDifferanceImage(const cv::Mat& original, const cv::Mat& transformed){
     cv::applyColorMap(diff8Bit, colorDiffImage, cv::COLORMAP_JET);
     cv::namedWindow("Difference Image", cv::WINDOW_NORMAL | cv::WINDOW_GUI_EXPANDED );
     cv::imshow("Difference Image", colorDiffImage);
+}
+
+void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame){
+
+    auto originalPC = originalFrame.getPointCloud();
+    auto compressedPC = compressedFrame.getPointCloud();
+    originalPC->PaintUniformColor({1, 0.706, 0});
+    compressedPC->PaintUniformColor({0, 0.651, 0.929});
+
+    open3d::DrawGeometries({originalPC, compressedPC});
 }
 
 void showCompressionArtifacts(const cv::Mat& original, const cv::Mat& compressed){
