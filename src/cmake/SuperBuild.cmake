@@ -46,7 +46,7 @@ list (APPEND EXTRA_CMAKE_ARGS
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/External-Open3D.cmake)
 set( DepthCodec_DEPENDENCIES ${DepthCodec_DEPENDENCIES} Open3D )
 list (APPEND EXTRA_CMAKE_ARGS
-	-DOpen3D_ROOT=${Open3D_ROOT}
+	-DOpen3D_DIR=${Open3D_DIR}
 )
 
 MESSAGE(STATUS "Now Configuring DepthCodec for Superbuild")

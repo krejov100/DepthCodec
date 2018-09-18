@@ -3,10 +3,21 @@
 #https://github.com/boostcon/cppnow_presentations_2017/blob/master/05-19-2017_friday/effective_cmake__daniel_pfeifer__cppnow_05-19-2017.pdf
 
 
-message(STATUS "${OpenCV_DIR}")
+
 find_package (OpenCV 3)
 find_package(Boost COMPONENTS system program_options log serialization REQUIRED)
 find_package(Open3D REQUIRED)
+
+
+FOREACH(LIB ${Open3D_LIBRARIES})
+	FIND_LIBRARY(FOUND_LIB_${LIB} ${LIB} HINT ${Open3D_LIBRARY_DIRS})
+	LIST(APPEND Open3D_FULL_LIBRARIES ${FOUND_LIB_${LIB}})
+	MESSAGE("Lib: ${LIB}")
+	MESSAGE("Found Lib: ${FOUND_LIB_${LIB}}")
+ENDFOREACH(LIB)
+
+message(STATUS "FULL LIB PATHS ${Open3D_FULL_LIBRARIES}")
+
 
 add_library(Core SHARED
 		include/CodecEvalFramework.h
@@ -33,8 +44,6 @@ add_library(Core SHARED
 		src/CodecEvalFramework.cpp
  )
 
-MESSAGE(${Boost_LIBRARIES})
-
 target_include_directories(Core
 		SYSTEM PRIVATE ${Boost_INCLUDE_DIRS}
 		SYSTEM PRIVATE ${OpenCV_INCLUDE_DIR}
@@ -50,7 +59,7 @@ target_link_libraries(Core
 		PUBLIC -fopenmp
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
-		PUBLIC ${Open3D_LIBRARIES}
+		PUBLIC ${Open3D_FULL_LIBRARIES}
 		PUBLIC ${REALSENSE2_FOUND}
 		#PUBLIC ${realsense2_LIBRARY}
 	)
@@ -84,7 +93,7 @@ target_link_libraries(TestCore
 		PUBLIC Core
 		PUBLIC ${Boost_LIBRARIES}
 		PUBLIC ${OpenCV_LIBS}
-		PUBLIC ${Open3D_LIBRARIES}
+		PUBLIC ${Open3D_FULL_LIBRARIES}
 		#PUBLIC ${realsense2_LIBRARY}
 		PUBLIC ${REALSENSE2_FOUND}
 		#PUBLIC ${GTK3_LIBRARIES}

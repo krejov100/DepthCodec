@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     auto pa = parentAddress(address);
     BOOST_TEST(pa == 0b000);
 
-    cv::Mat example = cv::imread("../../modules/core/resources/bgExampleDepth.tif");
+    cv::Mat example = cv::imread("../modules/core/resources/bgExampleDepth.tif");
     cv::resize(example, example, cv::Size(512,512), cv::INTER_NEAREST);
 
     cv::Mat gray_image;
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(TestPlayRosBag){
 }
 
 BOOST_AUTO_TEST_CASE(TestCodecFactory){
-    cv::Mat example = cv::imread("../../modules/core/resources/bgExampleDepth.tif");
+    cv::Mat example = cv::imread("../modules/core/resources/bgExampleDepth.tif");
 
     cv::Mat gray_image;
     cv::cvtColor(example, gray_image, CV_BGR2GRAY);
