@@ -14,14 +14,13 @@
 #include "iostream"
 #include "DepthCodec.h"
 #include "Frame.h"
-
+#include "ImageError.h"
 
 /// This is an interface for a compressable object
 /// differnt datatypes will need to be compressed in differnt ways
 
 /// template to IMAGE_TYPE with concept of image
-double MSE(const cv::Mat& original, const cv::Mat& transformed);
-double PSNR(const cv::Mat& original, const cv::Mat& transformed);
+
 void showCompressionArtifacts(const cv::Mat& original, const cv::Mat& compressed);
 void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame);
 
@@ -112,7 +111,6 @@ public:
         rslt.meanSquaredError = MSE(example, decompressed);
         rslt.peakSignalToNoise = PSNR(example, decompressed);
         if(showArtifacts) {
-            showCompressionArtifacts(example, decompressed);
             showCompressionArtifacts(example, decompressed);
         }
         cv::imshow("sdf", decompressed);

@@ -59,7 +59,8 @@ public:
 			cv::Rect subRegion(x, y, subImageSize.width, subImageSize.height);
 			cv::Mat subMat = depthImage(subRegion);
 			subCodec->decompress(subMat);
-
+			//cv::imshow("tile ", depthImage);
+			//cv::waitKey(0);
 			if (subImageSize.width + x >= getImageSize().width)
 			{
 				x = 0;

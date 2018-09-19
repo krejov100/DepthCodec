@@ -6,30 +6,6 @@
 #include "opencv2/opencv.hpp"
 #include <Visualization/Visualization.h>
 
-///Mean Squared Error
-double MSE(const cv::Mat& original, const cv::Mat& transformed){
-    cv::Mat originalSigned;
-    cv::Mat transformedSigned;
-
-    original.convertTo(originalSigned, CV_32FC1);
-    transformed.clone().convertTo(transformedSigned, CV_32FC1);
-
-    originalSigned -= transformedSigned;
-    cv::Mat squaredDiff;
-    cv::multiply(originalSigned, originalSigned, squaredDiff);
-
-    double summedSquaredDiff = cv::sum(squaredDiff)[0] / (originalSigned.rows * originalSigned.cols);
-
-    return summedSquaredDiff;
-}
-
-///Peak Signal to Noise ratio
-double PSNR(const cv::Mat& original, const cv::Mat& transformed){
-    double mse = MSE(original, transformed);
-
-    return (20 * log10(0xffff)) - (10 * log10(mse));
-}
-
 void showDifferanceImage(const cv::Mat& original, const cv::Mat& transformed){
     cv::Mat originalSigned;
     cv::Mat transformedSigned;
@@ -55,7 +31,7 @@ void showPointCloudCompression(std::shared_ptr<open3d::PointCloud> originalPC, s
     coloredCompressedPC->PaintUniformColor({0, 0.651, 0.929});
 
     auto rslt = open3d::EvaluateRegistration(*originalPC, *compressedPC, 1);
-    open3d::DrawGeometries({coloredOriginalPC, coloredCompressedPC});
+    open3d::DrawGeometries({coloredCompressedPC, coloredOriginalPC});
 }
 void showPointCloudCompression(const Frame& originalFrame, const Frame& compressedFrame){
     auto originalPC = originalFrame.getPointCloud();

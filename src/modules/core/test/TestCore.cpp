@@ -19,14 +19,14 @@
 #include "Core/Registration/Registration.h"
 
 
-BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff);
-BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec");
-BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec");
+BOOST_CLASS_EXPORT(RollingQT32bitMinMaxAbsDiff)
+BOOST_CLASS_EXPORT(RollingQT16bitMinMaxAbsDiff)
+BOOST_CLASS_EXPORT_GUID(IDepthCodec, "IDepthCodec")
+BOOST_CLASS_EXPORT_GUID(TiledCodec,"TiledCodec")
 
 
 BOOST_AUTO_TEST_CASE(TestLoadRosBag){
-        auto fs = LoadRosBag("/home/philip/Downloads/stairs.bag");
+        auto fs = LoadRosBag("/home/philip/Downloads/structured.bag");
 
         auto originalFrame = fs.grabFrame();
 
@@ -40,11 +40,17 @@ BOOST_AUTO_TEST_CASE(TestLoadRosBag){
 
         cv::Mat depthImage = originalFrame.getDepthImage();
 
+        /*CodecEvalFramework<cv::Mat, TiledCodec> testFramework(codec);
+        auto compressionPerf = testFramework.evaluateCodecOnExample(depthImage, false);
+        compressionPerf.printPerformance(std::cout);*/
 
         cv::Mat rslt;
         compressAndDecompress(codec, depthImage, rslt);
+        cv::imshow("sdrf",rslt*10);
+        cv::waitKey(0);
         Frame compressedFrame = originalFrame;
         compressedFrame.updateDepthImage(rslt);
+
 
         showPointCloudCompression(originalFrame, compressedFrame);
 
@@ -172,8 +178,8 @@ BOOST_AUTO_TEST_CASE(TestPerfectEncodeDecode){
     cv::Mat shortMat;
     gray_image.convertTo(shortMat, CV_16UC1, 65536/255);
 
-    using Codec = RollingQuadTree<NodeAddress32bit, Range<unsigned short>, AbsDiffPolicy>;
-    Codec t(AbsDiffPolicy(30 * (65536/255)));
+    using Codec = RollingQuadTree<NodeAddress32bit, RangeLeaf<unsigned short>, PSNRPolicy>;
+    Codec t(PSNRPolicy(30 * (65536/255)));
 
     BoostMarshaller<Codec> bm;
     t.compress(shortMat);

@@ -86,8 +86,9 @@ public:
             for (int x = 0; x < im.cols; x++) {
                 // TODO offload cell eval to the leaf, allowing parsing to be depth agnostic
                 auto a = this->encodeAddress(x, y, maxTreeDepth);
-                auto depth = im.at<ushort>(y, x);
-                addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
+                //auto depth = im.at<ushort>(y, x);
+                //addLeafThenPrune(a, LEAF_DATA_TYPE(depth));
+                addLeafThenPrune(a, LEAF_DATA_TYPE(im, cv::Rect(x,y,1,1)));
             }
         }
     }
@@ -101,7 +102,7 @@ public:
             int height = std::get<3>(decodedLeaf);
             // TODO make this part of the LEAF_NODE_TYPE
             cv::Mat cell = depthImage.rowRange(y, y + height).colRange(x , x + width);
-            cell.setTo(leaf.second.getMax());
+            leaf.second.render(cell);
         }
     }
 
