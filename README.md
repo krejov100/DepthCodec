@@ -1,6 +1,24 @@
 # Depth Codec
 This repo looks to perform comparision between differing depth codecs, on a veriaty of depth data captured using RealSense D415 and D435.
 
+## Motivation
+Depth is demonstrating a number of improtant usages, ranging from computer vision to viewpoint dependent rendering and lightfield representation. Compressing depth efficiently offers a number of benifits including wireless cameras, enabeling IoT devices and lightweight wireless HMD's.
+
+## Depth and Quadtree Structure
+This implimentation focuses on per frame compression, ignoring savings that could come from temproal consistency. It based on a quadtrees representation that is designed to encode mid level structure from a image. The Quadtree provides the mechanisum to encode depth distontinuities, while its leafs represent the surface geometry within these discontinuities.  
+
+We consider three main operations: at the highest level, we break the image up into a grid of patches, which is effectivly the minimum depth of a quadtree representations. The reason for this is discussed in more detail here /TODO link to reasons.
+
+The mid level representation is handled using a quadtree structure, one for each patch. The tree structure is optimised such that leaf nodes or cells can be represented using compact functions, with few perameters. Branching is determined by each functions ability to reproduce the underlying depth. When a functions abuility to reproduce the depth is bellow a determined threshold that portion of the quadtree is subdivied.
+
+The final depth representantion is encoded using four compact functions that can effectivly represent depth, in pertualar planer structure. The four functions: F0, F1, F2, F3 are based on platelett reprentations, with a carfully considered bit allocation for each. 
+
+## bit encoding
+This codec seeks to use the minimal required bit buget to represent both the tree structure and the parameters for F0, F1, F2, F3. There are also several bit flags used to indicate leaf/non-leaf and differentiate which F function is used.
+
+### leaf/non-leaf flag
+For a tree of know depth which is parsed in sequencial order is t
+
 # to test
 16bit normal ie 8bit x grad  8bit y grad
 addaptive snr for close and long range
