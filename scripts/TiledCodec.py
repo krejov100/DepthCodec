@@ -1,10 +1,47 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
+from CalculateMatricies import *
+from errors import *
 
 from Tree import Tree
-import bitarray
+from bitstream import BitStream
+from bitarray import bitarray
 
+def half_reader(stream, n=None):
+    if n is not None:
+        error = "unsupported argument n"
+        raise NotImplementedError(error)
+    else:
+        half = 0
+
+        integer = integer << 1
+        bits = bitarray()
+        bitarray.app = stream.read(bool)
+
+    return integer
+
+
+
+def get_bits(val, dtype="uint16"):
+    bits = bitarray.bitarray()
+    bytes = np.array([val], dtype=dtype).tobytes()
+    if dtype == 'bool':
+        bits.append(val)
+    else:
+        bits.frombytes(bytes)
+
+    return bits
+
+def get_values(bits, dtype="uint16"):
+    if dtype == 'bool':
+        val = bits.pop()
+        return val, bits
+    else:
+        bytes = bits.tobytes()
+        val = np.frombuffer(bytes, dtype=dtype)
+
+    return val, bits
 
 def getPSNR(image:np.ndarray, f):
     deccompressed = image.clone()
@@ -13,43 +50,81 @@ def getPSNR(image:np.ndarray, f):
     f_psnr = PSNR(image, deccompressed)
     return f_psnr
 
+
 class F0:
-    def compress(self, image:np.ndarray):
+    def compress(self, cell:np.ndarray):
+        pass
 
-    def decompress(self, image: np.ndarray):
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        self.decode(bits)
+        cell = np.zeros(cell.shape)
+        return cell
 
-    def get_compressed_bit_stream(self):
-        return
+    def encode(self):
+        return bitarray.bitarray()
+
+    def decode(self, bits:bitarray.bitarray):
+        pass
 
 
 class F1:
-    def compress(self, image:np.ndarray):
+    def __init__(self):
+        self.__max_val = 0
 
-    def decompress(self, image: np.ndarray):
+    def compress(self, cell:np.ndarray):
+        self.__max_val = np.amax(cell)
+        print(self.__max_val.dtype)
 
-    def get_compressed_bit_stream(self):
-        return
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        self.decode(bits)
+        cell.fill(self.__max_val)
+        return cell
+
+    def encode(self):
+        return get_bits(self.__max_val)
+
+    def decode(self, bits: bitarray.bitarray):
+        self.__max_val = get_values(bits)
 
 
 class F2:
-    def compress(self, image:np.ndarray):
+    def __init__(self):
+        self.__mean = 0
+        self.__p0 = 0
+        self.__p1 = 0
+        self.__p2 = 0
 
-    def decompress(self, image: np.ndarray):
+    def compress(self, cell: np.ndarray):
+        [[self.__p0, self.__p1, self.__p2], self.__mean] = compute_gradiant(cell)
 
-    def get_compressed_bit_stream(self):
-        return
+    def decompress(self, bits:bitarray.bitarray, cell:np.ndarray):
+        self.decode(bits)
+        cell = render_gradiant(cell.shape[0], [[self.__p0, self.__p1, self.__p2],self.__mean])
+        return cell
+
+    def encode(self):
+        return get_bits(self.__mean) + get_bits(self.__p0, 'float') + \
+               get_bits(self.__p1, 'float') + get_bits(self.__p2, 'float')
+
+    def decode(self, bits: bitarray.bitarray):
+        self.__mean = get_values(bits)
+        self.__p0 = get_values(bits)
+        self.__p1 = get_values(bits)
+        self.__p2 = get_values(bits)
 
 
 class F3:
-    def compress(self, image:np.ndarray):
+    def compress(self, cell: np.ndarray):
+        pass
 
-    def decompress(self, image: np.ndarray):
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        pass
 
     def get_compressed_bit_stream(self):
         return
 
 
-def get_best_function(image:np.ndarray, min_psnr:float):
+def get_best_function(image: np.ndarray, min_psnr: float):
     best_psnr = 0
     # order of evaluating best F is from biggest bit budget to smallest
     if image.shape[0] > 1:
@@ -58,11 +133,11 @@ def get_best_function(image:np.ndarray, min_psnr:float):
         if f2_psnr <= best_psnr:
             best_psnr =  f2_psnr
             best_codec = f2_codec
-        f3_codec = F3()
-        f3_psnr = getPSNR(image, f3_codec)
-        if f3_psnr <= best_psnr:
-            best_psnr = f3_psnr
-            best_codec = f3_codec
+        #f3_codec = F3()
+        #f3_psnr = getPSNR(image, f3_codec)
+        #if f3_psnr <= best_psnr:
+        #    best_psnr = f3_psnr
+        #    best_codec = f3_codec
     else:
         f1_codec = F1()
         f1_psnr = getPSNR(image, f1_codec)
@@ -83,8 +158,10 @@ def get_best_function(image:np.ndarray, min_psnr:float):
 
 class QuadTreeCodec:
     def compress(self, image:np.ndarray):
+        pass
 
-    def decompress(self, image: np.ndarray):
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        pass
 
     def get_compressed_bit_stream(self):
         return
@@ -92,8 +169,10 @@ class QuadTreeCodec:
 
 class TiledCodec:
     def compress(self, image: np.ndarray):
+        pass
 
-    def decompress(self, image:np.ndarray):
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        pass
 
     def get_compressed_bit_stream(self):
         return
@@ -101,8 +180,10 @@ class TiledCodec:
 
 class CompressedDepthImage:
     def compress(self, image:np.ndarray):
+        pass
 
-    def decompress(self, image:np.ndarray):
+    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        pass
 
     def get_compressed_bit_stream(self):
         return

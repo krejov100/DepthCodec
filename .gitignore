@@ -7,3 +7,5 @@ cmake-build-release
 __pycache__/
 
 src/3rdParty/Open3D-master/
+
+sampleData/

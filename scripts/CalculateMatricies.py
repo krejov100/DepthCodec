@@ -42,7 +42,6 @@ def masked_rh(im, mask):
 
 def compute_gradiant(im):
 	n = im.shape[0]
-	print(n)
 	return rh(im - np.mean(im)) * inverse_lh(n), np.mean(im)
 
 def masked_compute_gradiant(im, mask):

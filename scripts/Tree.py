@@ -1,4 +1,5 @@
 from sklearn import metrics
+from errors import *
 from CalculateMatricies import *
 from scipy.ndimage.morphology import grey_closing
 
