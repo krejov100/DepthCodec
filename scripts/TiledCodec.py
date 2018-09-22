@@ -1,3 +1,4 @@
+from zope.interface import Interface, implementer
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -10,34 +11,54 @@ from bitstream import BitStream
 from bitarray import bitarray
 
 
-def get_psnr(image: np.ndarray, f):
-    deccompressed = image.copy()
+def get_peak_signal_to_noise(image: np.ndarray, f):
+    uncompressed = image.copy()
     f.compress(image)
     bits = BitStream()
     bits = f.encode(bits)
     f.decode(bits)
-    deccompressed = f.decompress(deccompressed)
+    uncompressed = f.uncompress(uncompressed)
 
-    if mse(image, deccompressed) == 0:
+    if mse(image, uncompressed) == 0:
         return float('Inf')
-    f_psnr = psnr(image, deccompressed)
-    return f_psnr
+    sig = peak_signal_to_noise(image, uncompressed)
+    return sig
 
 
-class F0:
-    def compress(self, cell:np.ndarray):
+class DepthFunction(Interface):
+    def compress(self, cell: np.ndarray):
         pass
 
-    def decompress(self, cell: np.ndarray):
+    def uncompress(self, cell: np.ndarray):
+        pass
+
+    def encode(self, stream: BitStream) -> BitStream:
+        pass
+
+    def decode(self, stream: BitStream) -> BitStream:
+        pass
+
+
+@implementer(DepthFunction)
+class F0:
+    def compress(self, cell: np.ndarray):
+        pass
+
+    # noinspection PyMethodMayBeStatic
+    def uncompress(self, cell: np.ndarray):
         cell = np.zeros(cell.shape)
         return cell
+
+    # noinspection PyMethodMayBeStatic
     def encode(self, stream: BitStream):
         return stream
 
+    # noinspection PyMethodMayBeStatic
     def decode(self, stream: BitStream):
         return stream
 
 
+@implementer(DepthFunction)
 class F1:
     def __init__(self):
         self.__max_val = 0
@@ -45,8 +66,8 @@ class F1:
     def compress(self, cell: np.ndarray):
         self.__max_val = np.amax(cell)
 
-
-    def decompress(self, cell: np.ndarray):
+    # noinspection PyMethodMayBeStatic
+    def uncompress(self, cell: np.ndarray):
         cell.fill(self.__max_val)
         return cell
 
@@ -59,6 +80,7 @@ class F1:
         return stream
 
 
+@implementer(DepthFunction)
 class F2:
     def __init__(self):
         self.__mean = 0
@@ -90,6 +112,8 @@ class F2:
         self.__p2 = stream.read(np.float, 1)
         return stream
 
+
+@implementer(DepthFunction)
 class F3:
     def compress(self, cell: np.ndarray):
         pass
@@ -102,29 +126,30 @@ class F3:
 
 
 def get_best_function(image: np.ndarray, min_psnr: float):
+    # theta = min_peak_signal_to_noise
     best_psnr = 0
     # order of evaluating best F is from biggest bit budget to smallest
     if image.shape[0] > 1:
         f2_codec = F2()
-        f2_psnr = get_psnr(image, f2_codec)
-        print( "f2_psnr",  f2_psnr)
+        f2_psnr = get_peak_signal_to_noise(image, f2_codec)
+        print("f2_psnr",  f2_psnr)
         if f2_psnr <= best_psnr:
             best_psnr =  f2_psnr
             best_codec = f2_codec
-        #f3_codec = F3()
-        #f3_psnr = getPSNR(image, f3_codec)
-        #if f3_psnr <= best_psnr:
+        # f3_codec = F3()
+        # f3_psnr = getPSNR(image, f3_codec)
+        # if f3_psnr <= best_psnr:
         #    best_psnr = f3_psnr
         #    best_codec = f3_codec
 
     f1_codec = F1()
-    f1_psnr = get_psnr(image, f1_codec)
+    f1_psnr = get_peak_signal_to_noise(image, f1_codec)
     print("f1_psnr", f1_psnr)
     if f1_psnr <= best_psnr:
         best_psnr = f1_psnr
         best_codec = f1_codec
     f0_codec = F0()
-    f0_psnr = get_psnr(image, f0_codec)
+    f0_psnr = get_peak_signal_to_noise(image, f0_codec)
     print("f0_psnr", f0_psnr)
     if f0_psnr <= best_psnr:
         best_psnr = f0_psnr
@@ -135,16 +160,15 @@ def get_best_function(image: np.ndarray, min_psnr: float):
         return best_codec
 
 
-
 class QuadTreeCodec:
+
     def compress(self, image:np.ndarray):
         # hear we use the tree class with write out of it split or not
-
         node = Node(QuadROILeaf())
         self.__tree = Tree(Rect(0,0,image.shape[0],image.shape[1]), )
         self.__tree.top_down(image)
 
-
+    # noinspection PyMethodMayBeStatic
     def decompress(self, bits: bitarray, cell: np.ndarray):
         # hear we use stream the deciding if we split
         pass
@@ -165,7 +189,7 @@ class TiledCodec:
 
 
 class CompressedDepthImage:
-    def compress(self, image:np.ndarray):
+    def compress(self, image: np.ndarray):
         pass
 
     def decompress(self, bits: bitarray, cell: np.ndarray):
@@ -175,19 +199,18 @@ class CompressedDepthImage:
         return
 
 
-
 def main():
-
     class FunctionLeaf:
         def __init__(self, im):
             self.f = None
+
         def draw(self, im):
             if self.f is None:
                 return
             bits = BitStream()
             bits = self.f.encode(bits)
             bits = self.f.decode(bits)
-            self.f.decompress(im)
+            self.f.uncompress(im)
 
     class CompressedLeafFactory:
         def __init__(self):

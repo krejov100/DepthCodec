@@ -36,7 +36,7 @@ def f0error(cell):
 	cell_mse = mse(cell, decoded)
 	if(cell_mse == 0):
 		return(0,float('Inf'))
-	return cell_mse, psnr(cell, decoded)
+	return cell_mse, peak_signal_to_noise(cell, decoded)
 
 
 def f1error(cell):
@@ -48,7 +48,7 @@ def f1error(cell):
 		return(0,float('Inf'))
 	#if(psnr(cell, decoded) < 1000000 and psnr(cell, decoded) > 1):
 	#		showCellAndDecoding(cell, decoded)
-	return cell_mse, psnr(cell, decoded)
+	return cell_mse, peak_signal_to_noise(cell, decoded)
 
 
 def f2error(cell, b2):
@@ -62,7 +62,7 @@ def f2error(cell, b2):
 		return 0, float('Inf'), bs
 	#if (psnr(cell, decoded) < 1000000 and psnr(cell, decoded) > 60):
 	#	showCellAndDecoding(cell, decoded, min, max)
-	return cell_mse, psnr(cell, decoded), bs
+	return cell_mse, peak_signal_to_noise(cell, decoded), bs
 
 
 def f3error(cell):
