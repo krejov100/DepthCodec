@@ -1,6 +1,5 @@
-from unittest import TestCase
-import numpy as np
-import cv2
+from unittest import *
+from  zope.interface import Interface
 from CalculateMatricies import *
 from Rect import Rect
 from QuadTreeNode import QuadTreeNode
@@ -39,6 +38,19 @@ class GradiantEncoding:
         return im.min() == 0
         #return False
 
+class LeafData(Interface):
+    pass
+
+class LeafDataFactory(Interface):
+    # noinspection PyMethodMayBeStatic
+    def should_split(self, node: QuadTreeNode) -> bool:
+        pass
+
+    # noinspection PyMethodMayBeStatic
+    def create_leaf_data(self, node: QuadTreeNode) -> LeafData:
+        pass
+
+
 class Tree:
     def __init__(self, root):
         self.root = root
@@ -60,15 +72,15 @@ class Tree:
                 to_check = to_check + current.children
         return leafs
 
-    def top_down(self, should_split_function, leaf_data_generator):
+    def top_down(self, leaf_data_factory):
         to_grow = [self.root]
         while len(to_grow):
             leaf = to_grow.pop(0)
-            if should_split_function(leaf):
-                leaf.grow(leaf_data_generator)
+            if leaf_data_factory.should_split(leaf):
+                leaf.grow(leaf_data_factory)
                 to_grow = to_grow + leaf.children
             else:
-                leaf.set_leaf_data(leaf_data_generator.create_leaf_data(leaf))
+                leaf.set_leaf_data(leaf_data_factory.create_leaf_data(leaf))
 
     #def encode(self, image):
     #    self.top_down(image)
@@ -110,27 +122,27 @@ class TestTree(TestCase):
         #image = cv2.imread('bgExampleDepth.tif')
         #root = QuadTreeNode(image, Rect(0, 0, 16, 16))
         #tree = Tree(root)
+        pass
 
+    def Test_TreeWithImage(self):
+        im = cv2.imread('bgExampleDepth.tif')
+        im = cv2.resize(im[:, :, 1], (512, 512), 0, 0, cv2.INTER_NEAREST).copy()
 
-def main():
-    im = cv2.imread('bgExampleDepth.tif')
-    im = cv2.resize(im[:, :, 1], (512, 512), 0, 0, cv2.INTER_NEAREST).copy()
+        root = QuadTreeNode(im, Rect(0, 0, 512, 512))
+        tree = Tree(root)
+        tree.top_down(example_should_split, example_leaf_data_factory)
 
-    root = QuadTreeNode(im, Rect(0, 0, 512, 512))
-    tree = Tree(root)
-    tree.top_down(example_should_split, example_leaf_data_factory)
+        decompressed = im.copy()
+        tree.root.draw(decompressed, True)
 
-    decompressed = im.copy()
-    tree.root.draw(decompressed, True)
+        plt.imshow(im - decompressed)
+        plt.figure()
 
-    plt.imshow(im - decompressed)
-    plt.figure()
+        plt.imshow(decompressed)
+        plt.figure()
 
-    plt.imshow(decompressed)
-    plt.figure()
-
-    plt.imshow(im)
-    plt.pause(0)
+        plt.imshow(im)
+        plt.pause(0)
 
 
 if __name__ == '__main__':

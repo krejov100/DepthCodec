@@ -1,28 +1,13 @@
 from zope.interface import Interface, implementer
 import pyrealsense2 as rs
-import numpy as np
-import cv2
+from typing import Optional
 from CalculateMatricies import *
 from errors import *
 from QuadTreeNode import QuadTreeNode
-from Tree import Tree
+from Tree import Tree, LeafData, LeafDataFactory
 from Rect import Rect
 from bitstream import BitStream
 from bitarray import bitarray
-
-
-def get_peak_signal_to_noise(image: np.ndarray, f):
-    uncompressed = image.copy()
-    f.compress(image)
-    bits = BitStream()
-    bits = f.encode(bits)
-    f.decode(bits)
-    uncompressed = f.uncompress(uncompressed)
-
-    if mse(image, uncompressed) == 0:
-        return float('Inf')
-    sig = peak_signal_to_noise(image, uncompressed)
-    return sig
 
 
 class DepthFunction(Interface):
@@ -32,11 +17,27 @@ class DepthFunction(Interface):
     def uncompress(self, cell: np.ndarray):
         pass
 
+    # noinspection PyMethodMayBeStatic
     def encode(self, stream: BitStream) -> BitStream:
-        pass
+        return stream
 
+    # noinspection PyMethodMayBeStatic
     def decode(self, stream: BitStream) -> BitStream:
-        pass
+        return stream
+
+
+def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
+    uncompressed = image.copy()
+    f.compress(image)
+    bits = BitStream()
+    bits = f.encode(bits)
+    f.decode(bits)
+    f.uncompress(uncompressed)
+
+    if mse(image, uncompressed) == 0:
+        return float('Inf')
+    sig = peak_signal_to_noise(image, uncompressed)
+    return sig
 
 
 @implementer(DepthFunction)
@@ -125,16 +126,19 @@ class F3:
         return
 
 
-def get_best_function(image: np.ndarray, min_psnr: float):
+# noinspection
+def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
     # theta = min_peak_signal_to_noise
     best_psnr = 0
+    best_codec = None
     # order of evaluating best F is from biggest bit budget to smallest
     if image.shape[0] > 1:
-        f2_codec = F2()
+        f2_codec: DepthFunction = F2()
+        # noinspection PyTypeChecker
         f2_psnr = get_peak_signal_to_noise(image, f2_codec)
         print("f2_psnr",  f2_psnr)
         if f2_psnr <= best_psnr:
-            best_psnr =  f2_psnr
+            best_psnr = f2_psnr
             best_codec = f2_codec
         # f3_codec = F3()
         # f3_psnr = getPSNR(image, f3_codec)
@@ -142,13 +146,15 @@ def get_best_function(image: np.ndarray, min_psnr: float):
         #    best_psnr = f3_psnr
         #    best_codec = f3_codec
 
-    f1_codec = F1()
+    f1_codec: DepthFunction = F1()
+
     f1_psnr = get_peak_signal_to_noise(image, f1_codec)
     print("f1_psnr", f1_psnr)
     if f1_psnr <= best_psnr:
         best_psnr = f1_psnr
         best_codec = f1_codec
-    f0_codec = F0()
+    f0_codec: DepthFunction = F0()
+
     f0_psnr = get_peak_signal_to_noise(image, f0_codec)
     print("f0_psnr", f0_psnr)
     if f0_psnr <= best_psnr:
@@ -162,11 +168,12 @@ def get_best_function(image: np.ndarray, min_psnr: float):
 
 class QuadTreeCodec:
 
-    def compress(self, image:np.ndarray):
+    def compress(self, image: np.ndarray):
         # hear we use the tree class with write out of it split or not
-        node = Node(QuadROILeaf())
-        self.__tree = Tree(Rect(0,0,image.shape[0],image.shape[1]), )
-        self.__tree.top_down(image)
+        # node = Node(QuadROILeaf())
+        # self.__tree = Tree(Rect(0,0,image.shape[0],image.shape[1]), )
+        # self.__tree.top_down(image)
+        pass
 
     # noinspection PyMethodMayBeStatic
     def decompress(self, bits: bitarray, cell: np.ndarray):
@@ -200,41 +207,48 @@ class CompressedDepthImage:
 
 
 def main():
+    @implementer(LeafData)
     class FunctionLeaf:
-        def __init__(self, im):
-            self.f = None
+        def __init__(self):
+            self._depth_function = None
 
-        def draw(self, im):
-            if self.f is None:
+        def set_depth_function(self, depth_function: DepthFunction):
+            self._depth_function = depth_function
+
+        def draw(self, cell):
+            if self._depth_function is None:
                 return
             bits = BitStream()
-            bits = self.f.encode(bits)
-            bits = self.f.decode(bits)
-            self.f.uncompress(im)
+            bits = self._depth_function.encode(bits)
+            self._depth_function.decode(bits)
+            self._depth_function.uncompress(cell)
 
+    @implementer(LeafDataFactory)
     class CompressedLeafFactory:
         def __init__(self):
-            self.__datasteam = BitStream()
+            self.__data_stream = BitStream()
 
+        # noinspection PyMethodMayBeStatic
         def should_split(self, node: QuadTreeNode):
             # reached bottom
-            if node.roi.width == 1:
+            if node.roi.width == 1 or node.roi.height == 1:
                 return False
-            best_fucntion = get_best_function(node.get_sub_image(), 70)
-            return best_fucntion is None
+            best_function = get_best_function(node.get_sub_image(), 70)
+            return best_function is None
 
-        def create_leaf_data(self, node: QuadTreeNode):
+        # noinspection PyMethodMayBeStatic
+        def create_leaf_data(self, node: QuadTreeNode) -> FunctionLeaf:
             # this currently means the function sets are calculated twice,
             # only has compression time hit, and should be optimised out
-            self.f = get_best_function(node.get_sub_image(), 70)
-            return FunctionLeaf(node.roi.sub_im(node.image))
-
+            fl = FunctionLeaf()
+            fl.set_depth_function(get_best_function(node.get_sub_image(), 70))
+            node.set_leaf_data(fl)
+            return fl
 
     # TODO get a 16bit test image
     im = cv2.imread('bgExampleDepth.tif')
-    original_size = im.shape
-    im = cv2.resize(im[:, :, 1], (64, 64), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
 
+    im = cv2.resize(im[:, :, 1], (64, 64), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
 
     root = QuadTreeNode(im, Rect(0, 0, 64, 64))
     tree = Tree(root)
@@ -243,7 +257,7 @@ def main():
     decompressed = im.copy()
     tree.root.draw(decompressed, True)
 
-    #plt.imshow(im - decompressed)
+    # plt.imshow(im - decompressed)
     plt.figure()
 
     plt.imshow(im)
@@ -251,8 +265,6 @@ def main():
 
     plt.imshow(decompressed)
     plt.pause(0)
-
-
 
 def main2():
     # Configure depth and color streams
@@ -299,5 +311,7 @@ def main2():
     finally:
         # Stop streaming
         pipeline.stop()
+
+
 if __name__ == '__main__':
     main()
