@@ -1,38 +1,10 @@
-from sklearn import metrics
-from errors import *
+from unittest import TestCase
+import numpy as np
+import cv2
 from CalculateMatricies import *
-from scipy.ndimage.morphology import grey_closing
-
-class Rect:
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-    def sub_im(self, im):
-        return im[int(self.y):int(self.y) + int(self.height), int(self.x):int(self.x) + int(self.width)]
-
-    def tl(self):
-        return int(self.x), int(self.y)
-
-    def br(self):
-        return int(self.x + self.width), int(self.y + self.height)
-
-
-class MeanEncoding:
-    def __init__(self):
-        self.mean = 0
-
-    def encode(self, im):
-        self.mean = np.mean(im)
-
-    def decode(self, im):
-        im.fill(self.mean)
-
-    # currently min max, but might be better to use plane equation, and discard p2,p3 when sufficiently small
-    def should_split(self, im):
-        return (im.max() - im.min()) > 10
+from Rect import Rect
+from QuadTreeNode import QuadTreeNode
+from Drawable import IDrawable
 
 class GradiantEncoding:
     def __init__(self):
@@ -67,101 +39,17 @@ class GradiantEncoding:
         return im.min() == 0
         #return False
 
-
-def reached_bottom(roi):
-    if roi.width == 1 or roi.height == 1:
-        return True
-    return False
-
-
-class QuadROILeaf:
-    def __init__(self, roi):
-        self.roi = roi
-        self.encoding = GradiantEncoding()
-
-    def combine(self, child_leafs):
-        x = child_leafs[0].ROI.x
-        y = child_leafs[0].ROI.y
-        width = child_leafs[0].ROI.width * 2
-        height = child_leafs[0].ROI.height * 2
-        self.roi = Rect(x, y, width, height)
-        return self
-
-    def split(self):
-        x = self.roi.x
-        y = self.roi.y
-        half_width = self.roi.width / 2
-        half_height = self.roi.height / 2
-
-        if not reached_bottom(self.roi):
-            return [QuadROILeaf(Rect(x, y, half_width, half_height)),
-                    QuadROILeaf(Rect(x + half_width, y, half_height, half_height)),
-                    QuadROILeaf(Rect(x, y + half_height, half_width, half_height)),
-                    QuadROILeaf(Rect(x + half_width, y + half_height, half_width, half_height))
-                    ]
-        else:
-            return None
-
-    def draw(self, im):
-        cv2.rectangle(im, self.roi.tl(), self.roi.br(), 255)
-
-    def should_split(self, im):
-        return self.encoding.should_split(self.roi.sub_im(im))
-
-    def decode(self, im):
-        self.encoding.decode(self.roi.sub_im(im))
-
-    def encode(self, im):
-        self.encoding.encode(self.roi.sub_im(im))
-
-
-class Node:
-    def __init__(self, leaf_data, parent):
-        self.children = []
-        self.leaf_data = leaf_data
-        self.parent = parent
-
-    def prune(self):
-        self.leaf_data = self.leaf_data.prune([x.leaf_data for x in self.children])
-        self.children = None
-
-    def grow(self):
-        child_data = self.leaf_data.split()
-        if child_data:
-            self.children = [Node(x, self) for x in child_data]
-
-    def draw(self, im):
-        self.leaf_data.draw(im)
-        for child in self.children:
-            child.draw(im)
-
-    def encode(self, im):
-        self.leaf_data.encode(im)
-        for child in self.children:
-            child.encode(im)
-
-    def decode(self, im):
-        self.leaf_data.decode(im)
-        for child in self.children:
-            child.decode(im)
-
-    def should_split(self, im):
-        return self.leaf_data.should_split(im)
-
-
-def mse(a, b):
-    return metrics.mean_squared_error(a,b)
-
-
-def psnr(a, b):
-    return (20*np.log10(0xffff)) - (10 * np.log10(mse(a, b)))
-
 class Tree:
-    def __init__(self, roi):
-        self.root = None
-        self.roi = roi
+    def __init__(self, root):
+        self.root = root
 
-    def get_leafs(self, ):
+    def breadth_wise_get_node(self):
+        children = [self.root]
+        for child in children:
+            children.append(child.children)
+            yield child
+
+    def get_leafs(self):
         to_check = [self.root]
         leafs = []
         while to_check:
@@ -172,56 +60,75 @@ class Tree:
                 to_check = to_check + current.children
         return leafs
 
-    def top_down(self, image):
+    def top_down(self, should_split_function, leaf_data_generator):
         to_grow = [self.root]
         while len(to_grow):
             leaf = to_grow.pop(0)
-            if leaf.should_split(image):
-                leaf.grow()
-                leaf.encode(image)
+            if should_split_function(leaf):
+                leaf.grow(leaf_data_generator)
                 to_grow = to_grow + leaf.children
+            else:
+                leaf.set_leaf_data(leaf_data_generator.create_leaf_data(leaf))
+
+    #def encode(self, image):
+    #    self.top_down(image)
+
+    #def draw(self, im):
+    #    self.root.draw(im)
+    #    return im
+
+    #def decode(self):
+    #    im = np.zeros((self.roi.width, self.roi.height))
+    #    self.root.decode(im)
+    #    return im
 
 
-    def bottom_up(self, image):
-        # grow all the way to the bottom
-        # this is much slower then address based tree which is used in c++, as redundant children are made
-        to_grow = [self.root]
-        while len(to_grow):
-            leaf = to_grow.pop(0)
-            leaf.grow()
-            to_grow = to_grow + leaf.children
+# Example of a Leaf_Data type that can be used to store data in the leaf nodes of the tree
 
-    def encode(self, image):
-        self.top_down(image)
+class ExampleMaxLeaf(IDrawable):
+    def __init__(self, im):
+        self.__max = np.amax(im)
 
-    def draw(self, im):
-        self.root.draw(im)
-        return im
+    def draw(self, im, debug=False):
+        im.fill(self.__max)
 
-    def decode(self):
-        im = np.zeros((self.roi.width, self.roi.height))
-        self.root.decode(im)
-        return im
+
+def example_should_split(node: QuadTreeNode):
+        # reached bottom
+        if node.roi.width == 1 or node.roi.height == 1:
+            return False
+        return True
+
+
+def example_leaf_data_factory(node: QuadTreeNode):
+    return ExampleMaxLeaf(node.roi.sub_im(node.image))
+
+
+class TestTree(TestCase):
+    # TODO
+    def test_top_down(self):
+        #image = cv2.imread('bgExampleDepth.tif')
+        #root = QuadTreeNode(image, Rect(0, 0, 16, 16))
+        #tree = Tree(root)
 
 
 def main():
-    tree = Tree(Rect(0, 0, 512, 512))
-    tree.root = Node(QuadROILeaf(Rect(0, 0, 512, 512)), None)
     im = cv2.imread('bgExampleDepth.tif')
-    original_size = im.shape
-    im = cv2.resize(im[:,:,1], (512, 512), 0, 0, cv2.INTER_NEAREST)
-    #im = grey_closing(im, (5,5))
-    tree.encode(im)
-    print(len(tree.get_leafs()) * 32 / 1000/ 1000)
-    print(512 * 512 * 16 / 1000 / 1000)
-    decompressed = tree.decode()
+    im = cv2.resize(im[:, :, 1], (512, 512), 0, 0, cv2.INTER_NEAREST).copy()
+
+    root = QuadTreeNode(im, Rect(0, 0, 512, 512))
+    tree = Tree(root)
+    tree.top_down(example_should_split, example_leaf_data_factory)
+
+    decompressed = im.copy()
+    tree.root.draw(decompressed, True)
+
     plt.imshow(im - decompressed)
     plt.figure()
-    decompressed = cv2.resize(decompressed, (original_size[1], original_size[0]), 0, 0, cv2.INTER_NEAREST)
 
     plt.imshow(decompressed)
     plt.figure()
-    im = tree.draw(im)
+
     plt.imshow(im)
     plt.pause(0)
 

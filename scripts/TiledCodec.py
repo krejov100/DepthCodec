@@ -3,51 +3,24 @@ import numpy as np
 import cv2
 from CalculateMatricies import *
 from errors import *
-
+from QuadTreeNode import QuadTreeNode
 from Tree import Tree
+from Rect import Rect
 from bitstream import BitStream
 from bitarray import bitarray
 
-def half_reader(stream, n=None):
-    if n is not None:
-        error = "unsupported argument n"
-        raise NotImplementedError(error)
-    else:
-        half = 0
 
-        integer = integer << 1
-        bits = bitarray()
-        bitarray.app = stream.read(bool)
-
-    return integer
-
-
-
-def get_bits(val, dtype="uint16"):
-    bits = bitarray.bitarray()
-    bytes = np.array([val], dtype=dtype).tobytes()
-    if dtype == 'bool':
-        bits.append(val)
-    else:
-        bits.frombytes(bytes)
-
-    return bits
-
-def get_values(bits, dtype="uint16"):
-    if dtype == 'bool':
-        val = bits.pop()
-        return val, bits
-    else:
-        bytes = bits.tobytes()
-        val = np.frombuffer(bytes, dtype=dtype)
-
-    return val, bits
-
-def getPSNR(image:np.ndarray, f):
-    deccompressed = image.clone()
+def get_psnr(image: np.ndarray, f):
+    deccompressed = image.copy()
     f.compress(image)
-    f.decompress(deccompressed)
-    f_psnr = PSNR(image, deccompressed)
+    bits = BitStream()
+    bits = f.encode(bits)
+    f.decode(bits)
+    deccompressed = f.decompress(deccompressed)
+
+    if mse(image, deccompressed) == 0:
+        return float('Inf')
+    f_psnr = psnr(image, deccompressed)
     return f_psnr
 
 
@@ -55,36 +28,35 @@ class F0:
     def compress(self, cell:np.ndarray):
         pass
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
-        self.decode(bits)
+    def decompress(self, cell: np.ndarray):
         cell = np.zeros(cell.shape)
         return cell
+    def encode(self, stream: BitStream):
+        return stream
 
-    def encode(self):
-        return bitarray.bitarray()
-
-    def decode(self, bits:bitarray.bitarray):
-        pass
+    def decode(self, stream: BitStream):
+        return stream
 
 
 class F1:
     def __init__(self):
         self.__max_val = 0
 
-    def compress(self, cell:np.ndarray):
+    def compress(self, cell: np.ndarray):
         self.__max_val = np.amax(cell)
-        print(self.__max_val.dtype)
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
-        self.decode(bits)
+
+    def decompress(self, cell: np.ndarray):
         cell.fill(self.__max_val)
         return cell
 
-    def encode(self):
-        return get_bits(self.__max_val)
+    def encode(self, stream: BitStream):
+        stream.write(self.__max_val, np.uint16)
+        return stream
 
-    def decode(self, bits: bitarray.bitarray):
-        self.__max_val = get_values(bits)
+    def decode(self, stream: BitStream):
+        self.__max_val = stream.read(np.uint16, 1)[0]
+        return stream
 
 
 class F2:
@@ -95,29 +67,34 @@ class F2:
         self.__p2 = 0
 
     def compress(self, cell: np.ndarray):
-        [[self.__p0, self.__p1, self.__p2], self.__mean] = compute_gradiant(cell)
+        (p, self.__mean) = compute_gradiant(cell)
+        self.__p0 = p[0, 0]
+        self.__p1 = p[0, 1]
+        self.__p2 = p[0, 2]
 
-    def decompress(self, bits:bitarray.bitarray, cell:np.ndarray):
-        self.decode(bits)
-        cell = render_gradiant(cell.shape[0], [[self.__p0, self.__p1, self.__p2],self.__mean])
+    def decompress(self, cell: np.ndarray):
+        cell = render_gradiant(cell.shape[0], (np.asanyarray([[self.__p0, self.__p1, self.__p2]]), self.__mean))
         return cell
 
-    def encode(self):
-        return get_bits(self.__mean) + get_bits(self.__p0, 'float') + \
-               get_bits(self.__p1, 'float') + get_bits(self.__p2, 'float')
+    def encode(self, stream: BitStream):
+        stream.write(self.__mean, np.uint16)
+        stream.write(self.__p0, np.float)
+        stream.write(self.__p1, np.float)
+        stream.write(self.__p2, np.float)
+        return stream
 
-    def decode(self, bits: bitarray.bitarray):
-        self.__mean = get_values(bits)
-        self.__p0 = get_values(bits)
-        self.__p1 = get_values(bits)
-        self.__p2 = get_values(bits)
-
+    def decode(self, stream: BitStream):
+        self.__mean = stream.read(np.uint16, 1)
+        self.__p0 = stream.read(np.float, 1)
+        self.__p1 = stream.read(np.float, 1)
+        self.__p2 = stream.read(np.float, 1)
+        return stream
 
 class F3:
     def compress(self, cell: np.ndarray):
         pass
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+    def decompress(self, bits: bitarray, cell: np.ndarray):
         pass
 
     def get_compressed_bit_stream(self):
@@ -129,7 +106,8 @@ def get_best_function(image: np.ndarray, min_psnr: float):
     # order of evaluating best F is from biggest bit budget to smallest
     if image.shape[0] > 1:
         f2_codec = F2()
-        f2_psnr = getPSNR(image, f2_codec)
+        f2_psnr = get_psnr(image, f2_codec)
+        print( "f2_psnr",  f2_psnr)
         if f2_psnr <= best_psnr:
             best_psnr =  f2_psnr
             best_codec = f2_codec
@@ -138,17 +116,19 @@ def get_best_function(image: np.ndarray, min_psnr: float):
         #if f3_psnr <= best_psnr:
         #    best_psnr = f3_psnr
         #    best_codec = f3_codec
-    else:
-        f1_codec = F1()
-        f1_psnr = getPSNR(image, f1_codec)
-        if f1_psnr <= best_psnr:
-            best_psnr = f1_psnr
-            best_codec = f1_codec
-        f0_codec = F0()
-        f0_psnr = getPSNR(image, f0_codec)
-        if f0_psnr <= best_psnr:
-            best_psnr = f0_psnr
-            best_codec = f0_codec
+
+    f1_codec = F1()
+    f1_psnr = get_psnr(image, f1_codec)
+    print("f1_psnr", f1_psnr)
+    if f1_psnr <= best_psnr:
+        best_psnr = f1_psnr
+        best_codec = f1_codec
+    f0_codec = F0()
+    f0_psnr = get_psnr(image, f0_codec)
+    print("f0_psnr", f0_psnr)
+    if f0_psnr <= best_psnr:
+        best_psnr = f0_psnr
+        best_codec = f0_codec
     if best_psnr < min_psnr:
         return None
     else:
@@ -158,9 +138,15 @@ def get_best_function(image: np.ndarray, min_psnr: float):
 
 class QuadTreeCodec:
     def compress(self, image:np.ndarray):
-        pass
+        # hear we use the tree class with write out of it split or not
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+        node = Node(QuadROILeaf())
+        self.__tree = Tree(Rect(0,0,image.shape[0],image.shape[1]), )
+        self.__tree.top_down(image)
+
+
+    def decompress(self, bits: bitarray, cell: np.ndarray):
+        # hear we use stream the deciding if we split
         pass
 
     def get_compressed_bit_stream(self):
@@ -171,7 +157,7 @@ class TiledCodec:
     def compress(self, image: np.ndarray):
         pass
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+    def decompress(self, bits: bitarray, cell: np.ndarray):
         pass
 
     def get_compressed_bit_stream(self):
@@ -182,7 +168,7 @@ class CompressedDepthImage:
     def compress(self, image:np.ndarray):
         pass
 
-    def decompress(self, bits: bitarray.bitarray, cell: np.ndarray):
+    def decompress(self, bits: bitarray, cell: np.ndarray):
         pass
 
     def get_compressed_bit_stream(self):
@@ -190,8 +176,62 @@ class CompressedDepthImage:
 
 
 
-
 def main():
+
+    class FunctionLeaf:
+        def __init__(self, im):
+            self.f = None
+        def draw(self, im):
+            if self.f is None:
+                return
+            bits = BitStream()
+            bits = self.f.encode(bits)
+            bits = self.f.decode(bits)
+            self.f.decompress(im)
+
+    class CompressedLeafFactory:
+        def __init__(self):
+            self.__datasteam = BitStream()
+
+        def should_split(self, node: QuadTreeNode):
+            # reached bottom
+            if node.roi.width == 1:
+                return False
+            best_fucntion = get_best_function(node.get_sub_image(), 70)
+            return best_fucntion is None
+
+        def create_leaf_data(self, node: QuadTreeNode):
+            # this currently means the function sets are calculated twice,
+            # only has compression time hit, and should be optimised out
+            self.f = get_best_function(node.get_sub_image(), 70)
+            return FunctionLeaf(node.roi.sub_im(node.image))
+
+
+    # TODO get a 16bit test image
+    im = cv2.imread('bgExampleDepth.tif')
+    original_size = im.shape
+    im = cv2.resize(im[:, :, 1], (64, 64), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
+
+
+    root = QuadTreeNode(im, Rect(0, 0, 64, 64))
+    tree = Tree(root)
+    tree.top_down(CompressedLeafFactory())
+
+    decompressed = im.copy()
+    tree.root.draw(decompressed, True)
+
+    #plt.imshow(im - decompressed)
+    plt.figure()
+
+    plt.imshow(im)
+    plt.figure()
+
+    plt.imshow(decompressed)
+    plt.pause(0)
+
+
+
+def main2():
     # Configure depth and color streams
     pipeline = rs.pipeline()
     config = rs.config()
