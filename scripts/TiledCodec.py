@@ -27,13 +27,12 @@ class DepthFunction(Interface):
 
 
 def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
-    uncompressed = image.copy()
+    uncompressed = np.zeros(image.shape)
     f.compress(image)
     bits = BitStream()
     bits = f.encode(bits)
     f.decode(bits)
     f.uncompress(uncompressed)
-
     if mse(image, uncompressed) == 0:
         return float('Inf')
     sig = peak_signal_to_noise(image, uncompressed)
@@ -47,8 +46,7 @@ class F0:
 
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
-        cell = np.zeros(cell.shape)
-        return cell
+        cell.fill(0)
 
     # noinspection PyMethodMayBeStatic
     def encode(self, stream: BitStream):
@@ -70,7 +68,7 @@ class F1:
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
         cell.fill(self.__max_val)
-        return cell
+
 
     def encode(self, stream: BitStream):
         stream.write(self.__max_val, np.uint16)
@@ -95,9 +93,9 @@ class F2:
         self.__p1 = p[0, 1]
         self.__p2 = p[0, 2]
 
-    def decompress(self, cell: np.ndarray):
-        cell = render_gradiant(cell.shape[0], (np.asanyarray([[self.__p0, self.__p1, self.__p2]]), self.__mean))
-        return cell
+    def uncompress(self, cell: np.ndarray):
+        cell[:, :] = render_gradiant(cell.shape[0], (np.asanyarray([[self.__p0, self.__p1, self.__p2]]), self.__mean))
+
 
     def encode(self, stream: BitStream):
         stream.write(self.__mean, np.uint16)
@@ -119,7 +117,7 @@ class F3:
     def compress(self, cell: np.ndarray):
         pass
 
-    def decompress(self, bits: bitarray, cell: np.ndarray):
+    def uncompress(self, bits: bitarray, cell: np.ndarray):
         pass
 
     def get_compressed_bit_stream(self):
@@ -128,42 +126,29 @@ class F3:
 
 # noinspection
 def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
-    # theta = min_peak_signal_to_noise
-    best_psnr = 0
-    best_codec = None
-    # order of evaluating best F is from biggest bit budget to smallest
-    if image.shape[0] > 1:
-        f2_codec: DepthFunction = F2()
-        # noinspection PyTypeChecker
-        f2_psnr = get_peak_signal_to_noise(image, f2_codec)
-        print("f2_psnr",  f2_psnr)
-        if f2_psnr <= best_psnr:
-            best_psnr = f2_psnr
-            best_codec = f2_codec
-        # f3_codec = F3()
-        # f3_psnr = getPSNR(image, f3_codec)
-        # if f3_psnr <= best_psnr:
-        #    best_psnr = f3_psnr
-        #    best_codec = f3_codec
+    f0_codec: DepthFunction = F0()
+    f0_psnr = get_peak_signal_to_noise(image, f0_codec)
+    if f0_psnr > min_psnr:
+        return f0_codec
 
     f1_codec: DepthFunction = F1()
-
     f1_psnr = get_peak_signal_to_noise(image, f1_codec)
-    print("f1_psnr", f1_psnr)
-    if f1_psnr <= best_psnr:
-        best_psnr = f1_psnr
-        best_codec = f1_codec
-    f0_codec: DepthFunction = F0()
+    if f1_psnr > min_psnr:
+        return f1_codec
 
-    f0_psnr = get_peak_signal_to_noise(image, f0_codec)
-    print("f0_psnr", f0_psnr)
-    if f0_psnr <= best_psnr:
-        best_psnr = f0_psnr
-        best_codec = f0_codec
-    if best_psnr < min_psnr:
-        return None
-    else:
-        return best_codec
+    if image.shape[0] > 1:
+        f2_codec: DepthFunction = F2()
+        f2_psnr = get_peak_signal_to_noise(image, f2_codec)
+        if f2_psnr > min_psnr:
+            return f2_codec
+
+        # f3_codec: DepthFunction = F3()
+        # f3_psnr = get_peak_signal_to_noise(image, f3_codec)
+        # if f3_psnr > min_psnr:
+        #    return f3_codec
+
+    return None
+
 
 
 class QuadTreeCodec:
@@ -228,12 +213,17 @@ def main():
         def __init__(self):
             self.__data_stream = BitStream()
 
+            self.split_count = 0
+
         # noinspection PyMethodMayBeStatic
         def should_split(self, node: QuadTreeNode):
             # reached bottom
             if node.roi.width == 1 or node.roi.height == 1:
                 return False
-            best_function = get_best_function(node.get_sub_image(), 70)
+            sub_image = node.get_sub_image()
+            if np.amin(sub_image) == 0:
+                return True
+            best_function = get_best_function(sub_image , 80)
             return best_function is None
 
         # noinspection PyMethodMayBeStatic
@@ -241,23 +231,28 @@ def main():
             # this currently means the function sets are calculated twice,
             # only has compression time hit, and should be optimised out
             fl = FunctionLeaf()
-            fl.set_depth_function(get_best_function(node.get_sub_image(), 70))
+            fl.set_depth_function(get_best_function(node.get_sub_image(), 80))
             node.set_leaf_data(fl)
+            self.split_count = self.split_count + 1
             return fl
 
     # TODO get a 16bit test image
-    im = cv2.imread('bgExampleDepth.tif')
+    im = cv2.imread('bgExampleDepth.tif')[:,:,1]
 
-    im = cv2.resize(im[:, :, 1], (64, 64), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
+    #im = cv2.resize(im[:, :, 1], (512, 512), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
 
-    root = QuadTreeNode(im, Rect(0, 0, 64, 64))
+    root = QuadTreeNode(im, Rect(240, 240, 128, 128))
     tree = Tree(root)
-    tree.top_down(CompressedLeafFactory())
+    Factory = CompressedLeafFactory()
+    tree.top_down(Factory)
+    print(Factory.split_count)
 
-    decompressed = im.copy()
-    tree.root.draw(decompressed, True)
+    decompressed = np.zeros(im.shape)
+    tree.draw(decompressed, False)
 
-    # plt.imshow(im - decompressed)
+    print(peak_signal_to_noise(im, decompressed))
+
+    plt.imshow(np.abs(im - decompressed), vmax=5, vmin=0)
     plt.figure()
 
     plt.imshow(im)
@@ -265,6 +260,8 @@ def main():
 
     plt.imshow(decompressed)
     plt.pause(0)
+
+
 
 def main2():
     # Configure depth and color streams

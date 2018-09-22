@@ -8,7 +8,6 @@ from Drawable import IDrawable
 
 @implementer(IDrawable)
 class QuadTreeNode(Node):
-
     def __init__(self, image: np.ndarray, roi: Rect, parent=None):
         Node.__init__(self, parent)
         self.image = image
@@ -38,10 +37,9 @@ class QuadTreeNode(Node):
 
     # TODO add check that child is drawable
     def draw(self, im, debug=False):
-        for child in self.children:
-            child.draw(im, debug)
+        sub_im = self.roi.sub_im(im)
         if self._leaf_data is not None:
-            sub_im = self.roi.sub_im(im)
             self._leaf_data.draw(sub_im)
         if debug:
             cv2.rectangle(im, self.roi.tl(), self.roi.br(), 255)
+        return sub_im

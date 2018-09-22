@@ -58,7 +58,7 @@ class Tree:
     def breadth_wise_get_node(self):
         children = [self.root]
         for child in children:
-            children.append(child.children)
+            children.append(child.get_children())
             yield child
 
     def get_leafs(self):
@@ -66,10 +66,10 @@ class Tree:
         leafs = []
         while to_check:
             current = to_check.pop(0)
-            if not current.children:
+            if not current.get_children():
                 leafs = leafs + [current]
             else:
-                to_check = to_check + current.children
+                to_check = to_check + current.get_children()
         return leafs
 
     def top_down(self, leaf_data_factory):
@@ -77,17 +77,21 @@ class Tree:
         while len(to_grow):
             leaf = to_grow.pop(0)
             if leaf_data_factory.should_split(leaf):
-                leaf.grow(leaf_data_factory)
-                to_grow = to_grow + leaf.children
+                leaf.split(leaf_data_factory)
+                to_grow = to_grow + leaf.get_children()
             else:
                 leaf.set_leaf_data(leaf_data_factory.create_leaf_data(leaf))
 
     #def encode(self, image):
     #    self.top_down(image)
 
-    #def draw(self, im):
-    #    self.root.draw(im)
-    #    return im
+    def draw(self, im, debug=False):
+        to_visit = [self.root]
+        while to_visit:
+            current = to_visit.pop(0)
+            current.draw(im, debug)
+            to_visit = to_visit + current.get_children()
+        return im
 
     #def decode(self):
     #    im = np.zeros((self.roi.width, self.roi.height))

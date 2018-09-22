@@ -1,21 +1,18 @@
-from  zope.interface import Interface, Attribute
 
-
-class Node(Interface):
-    _children = Attribute("child Nodes")
-    _parent = Attribute("Reference to Parent")
-    _leaf_data = Attribute("Data for this leaf_node")
-
+class Node:
     def __init__(self, parent):
         self._children = []
         self._leaf_data = None
         self._parent = parent
 
     def get_children(self):
-        return self.children
+        return self._children
 
     def get_parent(self):
         return self._parent
+
+    def is_leaf(self) -> bool:
+        return self._leaf_data is not None
 
     def set_leaf_data(self, leaf_data):
         self._leaf_data = leaf_data
@@ -24,9 +21,8 @@ class Node(Interface):
         return self._leaf_data
 
     def prune(self):
-        self.leaf_data.combine(self, self.children)
-        self.children = []
+        self._leaf_data.combine(self, self._children)
+        self._children = []
 
     def split(self, leaf_data_factory):
-        pass
-
+        self._children = self.split_into_children(leaf_data_factory)
