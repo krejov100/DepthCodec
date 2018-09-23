@@ -10,8 +10,8 @@ from Tree import LeafDataFactory
 
 @implementer(LeafDataFactory)
 class CompressedLeafFactory:
-    def __init__(self, min_patch_snr:float):
-        self.min_patch_snr = min_patch_snr
+    def __init__(self, min_cell_snr:float):
+        self.min_patch_snr = min_cell_snr
         self.__data_stream = BitStream()
         self.split_counts = [{}, {}, {}, {}]
         n = 10

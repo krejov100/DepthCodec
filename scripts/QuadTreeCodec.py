@@ -8,16 +8,18 @@ import numpy as np
 
 
 class QuadTreeCodec:
-    def __init__(self, quad_tree_size=64):
+    def __init__(self, quad_tree_size=64, min_cell_snr=70):
         self.quad_tree_size = quad_tree_size
+        self.min_cell_snr = min_cell_snr
         self.tree = None
+
     def get_codec_shape(self):
         return [self.quad_tree_size, self.quad_tree_size]
 
     def compress(self, image: np.ndarray):
         root = QuadTreeNode(image, Rect(0, 0, self.quad_tree_size, self.quad_tree_size))
         self.tree = Tree(root)
-        leaf_factory = CompressedLeafFactory(70.0)
+        leaf_factory = CompressedLeafFactory(self.min_cell_snr)
         self.tree.top_down(leaf_factory)
 
     # noinspection PyMethodMayBeStatic

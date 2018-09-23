@@ -1,28 +1,7 @@
 import glob
-import pyrealsense2 as rs
 from Errors import *
-import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.feature_extraction import image
 from CalculateMatricies import *
-import multiprocessing
-
-
-files = glob.glob('/home/spc/Desktop/DepthCodec/sampleData/*')
-print(files)
-
-
-def loadSampleFromFile(rosFilePath):
-	print('loading from: ' + example)
-	config = rs.config()
-	config.enable_device_from_file(rosFilePath)
-	pipeline = rs.pipeline()
-	pipeline.start(config)
-	frames = pipeline.wait_for_frames()
-	depth = frames.get_depth_frame()
-	depth_data = depth.as_frame().get_data()
-	depth_image = np.asanyarray(depth_data)
-	return depth_image
 
 
 def showCellAndDecoding(cell, decoded, min, max):
@@ -30,10 +9,9 @@ def showCellAndDecoding(cell, decoded, min, max):
 	plt.pause(0.001)
 
 
-
 def f0error(cell):
 	decoded = np.zeros(cell.shape)
-	cell_mse = mse(cell, decoded)
+	cell_mse = mean_squared_error(cell, decoded)
 	if(cell_mse == 0):
 		return(0,float('Inf'))
 	return cell_mse, peak_signal_to_noise(cell, decoded)
@@ -43,7 +21,7 @@ def f1error(cell):
 	decoded = np.zeros(cell.shape)
 	max = np.amax(cell)
 	decoded.fill(max)
-	cell_mse = mse(cell, decoded)
+	cell_mse = mean_squared_error(cell, decoded)
 	if(cell_mse == 0):
 		return(0,float('Inf'))
 	#if(psnr(cell, decoded) < 1000000 and psnr(cell, decoded) > 1):
@@ -57,7 +35,7 @@ def f2error(cell, b2):
 	max = np.amax(cell)
 	min = np.amin(cell)
 	decoded = render_gradiant(n, bs)
-	cell_mse = mse(cell, decoded)
+	cell_mse = mean_squared_error(cell, decoded)
 	if (cell_mse == 0):
 		return 0, float('Inf'), bs
 	#if (psnr(cell, decoded) < 1000000 and psnr(cell, decoded) > 60):
@@ -72,6 +50,8 @@ def f3error(cell):
 def f4error(cell):
 	pass
 
+
+files = glob.glob('./sample_data*')
 n = 8
 cell_sizes = [ 2**j for j in range(1,n+1)]
 print(cell_sizes)
