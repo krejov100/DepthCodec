@@ -8,6 +8,7 @@ from Tree import Tree, LeafData, LeafDataFactory
 from Rect import Rect
 from bitstream import BitStream
 from bitarray import bitarray
+from PIL import Image
 
 
 class DepthFunction(Interface):
@@ -24,6 +25,9 @@ class DepthFunction(Interface):
     # noinspection PyMethodMayBeStatic
     def decode(self, stream: BitStream) -> BitStream:
         return stream
+
+    def get_function_index(self):
+        pass
 
 
 def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
@@ -56,6 +60,8 @@ class F0:
     def decode(self, stream: BitStream):
         return stream
 
+    def get_function_index(self):
+        return 0
 
 @implementer(DepthFunction)
 class F1:
@@ -78,6 +84,8 @@ class F1:
         self.__max_val = stream.read(np.uint16, 1)[0]
         return stream
 
+    def get_function_index(self):
+        return 1
 
 @implementer(DepthFunction)
 class F2:
@@ -111,6 +119,8 @@ class F2:
         self.__p2 = stream.read(np.float, 1)
         return stream
 
+    def get_function_index(self):
+        return 2
 
 @implementer(DepthFunction)
 class F3:
@@ -123,6 +133,8 @@ class F3:
     def get_compressed_bit_stream(self):
         return
 
+    def get_function_index(self):
+        return 3
 
 # noinspection
 def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
@@ -136,10 +148,10 @@ def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunct
     if f1_psnr > min_psnr:
         return f1_codec
 
-    if image.shape[0] > 1:
+    if image.shape[0] > 2:# and np.amin(image) != 0:
         f2_codec: DepthFunction = F2()
         f2_psnr = get_peak_signal_to_noise(image, f2_codec)
-        if f2_psnr > min_psnr:
+        if f2_psnr > min_psnr-5:
             return f2_codec
 
         # f3_codec: DepthFunction = F3()
@@ -171,7 +183,7 @@ class QuadTreeCodec:
 
 class TiledCodec:
     def compress(self, image: np.ndarray):
-        pass
+        
 
     def decompress(self, bits: bitarray, cell: np.ndarray):
         pass
@@ -213,7 +225,13 @@ def main():
         def __init__(self):
             self.__data_stream = BitStream()
 
-            self.split_count = 0
+            self.split_counts = [{}, {}, {}, {}]
+            n = 10
+            po2s = [2 ** j for j in range(0, n + 1)]
+            for i in range(4):
+                for po2 in po2s:
+                    self.split_counts[i][po2] = 0
+
 
         # noinspection PyMethodMayBeStatic
         def should_split(self, node: QuadTreeNode):
@@ -221,9 +239,8 @@ def main():
             if node.roi.width == 1 or node.roi.height == 1:
                 return False
             sub_image = node.get_sub_image()
-            if np.amin(sub_image) == 0:
-                return True
-            best_function = get_best_function(sub_image , 80)
+
+            best_function = get_best_function(sub_image, 84)
             return best_function is None
 
         # noinspection PyMethodMayBeStatic
@@ -231,21 +248,29 @@ def main():
             # this currently means the function sets are calculated twice,
             # only has compression time hit, and should be optimised out
             fl = FunctionLeaf()
-            fl.set_depth_function(get_best_function(node.get_sub_image(), 80))
+            fl.set_depth_function(get_best_function(node.get_sub_image(), 84))
             node.set_leaf_data(fl)
-            self.split_count = self.split_count + 1
+
+            self.split_counts[fl._depth_function.get_function_index()][node.roi.width] += 1
             return fl
 
     # TODO get a 16bit test image
     im = cv2.imread('bgExampleDepth.tif')[:,:,1]
+    # resize image to nearest power of two, compress
+    #im = cv2.resize(im, (1024, 1024), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
+    # having to use pil and openCV bug #9096
 
-    #im = cv2.resize(im[:, :, 1], (512, 512), 0, 0, cv2.INTER_NEAREST).astype(np.uint16).copy()
 
-    root = QuadTreeNode(im, Rect(240, 240, 128, 128))
+    im = np.asarray(Image.fromarray(im).resize((1024, 1024), Image.NEAREST))
+
+    root = QuadTreeNode(im, Rect(0, 0, 1024, 1024))
     tree = Tree(root)
     Factory = CompressedLeafFactory()
     tree.top_down(Factory)
-    print(Factory.split_count)
+
+    # using asanyarray improves print
+    for i in range(4):
+        print([x for x in Factory.split_counts[i].values()])
 
     decompressed = np.zeros(im.shape)
     tree.draw(decompressed, False)
