@@ -120,7 +120,7 @@ class QuadTreeCodec:
 
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
-        self.tree.draw(cell, True)
+        self.tree.draw(cell, False)
 
     def encode(self, stream: BitStream):
         return stream
@@ -196,6 +196,8 @@ def main():
     tc = TiledCodec(CodecFactory())
     tc.compress(im)
     uncompressed = tc.uncompress()
+    plt.figure()
+    plt.imshow(im)
     plt.figure()
     plt.imshow(uncompressed)
     plt.pause(0)
