@@ -2,10 +2,9 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from zope.interface import Interface, implementer
+from zope.interface import implementer
 import pyrealsense2 as rs
 from typing import Optional
-from CalculateMatricies import *
 from errors import *
 from QuadTreeNode import QuadTreeNode
 from Tree import Tree, LeafData, LeafDataFactory
@@ -13,26 +12,7 @@ from Rect import Rect
 from bitstream import BitStream
 from bitarray import bitarray
 from PIL import Image
-
-
-class DepthFunction(Interface):
-    def compress(self, cell: np.ndarray):
-        pass
-
-    def uncompress(self, cell: np.ndarray):
-        pass
-
-    # noinspection PyMethodMayBeStatic
-    def encode(self, stream: BitStream) -> BitStream:
-        return stream
-
-    # noinspection PyMethodMayBeStatic
-    def decode(self, stream: BitStream) -> BitStream:
-        return stream
-
-    def get_function_index(self):
-        pass
-
+from DepthFunctions import *
 
 def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
     uncompressed = np.zeros(image.shape)
@@ -47,101 +27,6 @@ def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
     return sig
 
 
-@implementer(DepthFunction)
-class F0:
-    def compress(self, cell: np.ndarray):
-        pass
-
-    # noinspection PyMethodMayBeStatic
-    def uncompress(self, cell: np.ndarray):
-        # dont need to as the image is zero initialiszed
-        cell.fill(0)
-        #pass
-
-    # noinspection PyMethodMayBeStatic
-    def encode(self, stream: BitStream):
-        return stream
-
-    # noinspection PyMethodMayBeStatic
-    def decode(self, stream: BitStream):
-        return stream
-
-    def get_function_index(self):
-        return 0
-
-@implementer(DepthFunction)
-class F1:
-    def __init__(self):
-        self.__max_val = 0
-
-    def compress(self, cell: np.ndarray):
-        self.__max_val = np.amax(cell)
-
-    # noinspection PyMethodMayBeStatic
-    def uncompress(self, cell: np.ndarray):
-        cell.fill(self.__max_val)
-
-
-    def encode(self, stream: BitStream):
-        stream.write(self.__max_val, np.uint16)
-        return stream
-
-    def decode(self, stream: BitStream):
-        self.__max_val = stream.read(np.uint16, 1)[0]
-        return stream
-
-    def get_function_index(self):
-        return 1
-
-@implementer(DepthFunction)
-class F2:
-    def __init__(self):
-        self.__mean = 0
-        self.__p0 = 0
-        self.__p1 = 0
-        self.__p2 = 0
-
-    def compress(self, cell: np.ndarray):
-        (p, self.__mean) = compute_gradiant(cell)
-        self.__p0 = p[0, 0]
-        self.__p1 = p[0, 1]
-        self.__p2 = p[0, 2]
-
-    def uncompress(self, cell: np.ndarray):
-        cell[:, :] = render_gradiant(cell.shape[0], (np.asanyarray([[self.__p0, self.__p1, self.__p2]]), self.__mean))
-
-
-    def encode(self, stream: BitStream):
-        stream.write(self.__mean, np.uint16)
-        stream.write(self.__p0, np.float)
-        stream.write(self.__p1, np.float)
-        stream.write(self.__p2, np.float)
-        return stream
-
-    def decode(self, stream: BitStream):
-        self.__mean = stream.read(np.uint16, 1)
-        self.__p0 = stream.read(np.float, 1)
-        self.__p1 = stream.read(np.float, 1)
-        self.__p2 = stream.read(np.float, 1)
-        return stream
-
-    def get_function_index(self):
-        return 2
-
-@implementer(DepthFunction)
-class F3:
-    def compress(self, cell: np.ndarray):
-        pass
-
-    def uncompress(self, bits: bitarray, cell: np.ndarray):
-        pass
-
-    def get_compressed_bit_stream(self):
-        return
-
-    def get_function_index(self):
-        return 3
-
 # noinspection
 def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
     f0_codec: DepthFunction = F0()
@@ -149,12 +34,15 @@ def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunct
     if f0_psnr > min_psnr:
         return f0_codec
 
+    if np.amin(image) == 0:
+        return None
+
     f1_codec: DepthFunction = F1()
     f1_psnr = get_peak_signal_to_noise(image, f1_codec)
     if f1_psnr > min_psnr:
         return f1_codec
 
-    if image.shape[0] > 4:  # and np.amin(image) != 0:
+    if image.shape[0] > 4:
         f2_codec: DepthFunction = F2()
         f2_psnr = get_peak_signal_to_noise(image, f2_codec)
         if f2_psnr > min_psnr:
@@ -164,7 +52,6 @@ def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunct
         # f3_psnr = get_peak_signal_to_noise(image, f3_codec)
         # if f3_psnr > min_psnr:
         #    return f3_codec
-
     return None
 
 
@@ -184,9 +71,11 @@ class FunctionLeaf:
         self._depth_function.decode(bits)
         self._depth_function.uncompress(cell)
 
+
 @implementer(LeafDataFactory)
 class CompressedLeafFactory:
-    def __init__(self):
+    def __init__(self, min_patch_snr:float):
+        self.min_patch_snr = min_patch_snr
         self.__data_stream = BitStream()
         self.split_counts = [{}, {}, {}, {}]
         n = 10
@@ -202,7 +91,7 @@ class CompressedLeafFactory:
             return False
         sub_image = node.get_sub_image()
 
-        best_function = get_best_function(sub_image, 90)
+        best_function = get_best_function(sub_image, self.min_patch_snr)
         return best_function is None
 
     # noinspection PyMethodMayBeStatic
@@ -210,7 +99,7 @@ class CompressedLeafFactory:
         # this currently means the function sets are calculated twice,
         # only has compression time hit, and should be optimised out
         fl = FunctionLeaf()
-        fl.set_depth_function(get_best_function(node.get_sub_image(), 90))
+        fl.set_depth_function(get_best_function(node.get_sub_image(), self.min_patch_snr))
         node.set_leaf_data(fl)
 
         self.split_counts[fl._depth_function.get_function_index()][node.roi.width] += 1
@@ -226,10 +115,8 @@ class QuadTreeCodec:
     def compress(self, image: np.ndarray):
         root = QuadTreeNode(image, Rect(0, 0, self.quad_tree_size, self.quad_tree_size))
         self.tree = Tree(root)
-        leaf_factory = CompressedLeafFactory()
+        leaf_factory = CompressedLeafFactory(70.0)
         self.tree.top_down(leaf_factory)
-
-        pass
 
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
@@ -274,8 +161,13 @@ class TiledCodec:
                 index += 1
         return image
 
-    def get_compressed_bit_stream(self):
-        return
+    def encode(self, stream: BitStream):
+        for codec in self.codecs:
+            codec.encode(stream)
+
+    def decode(self, stream: BitStream):
+        for codec in self.codecs:
+            codec.decode(stream)
 
 
 class CompressedDepthImage:
