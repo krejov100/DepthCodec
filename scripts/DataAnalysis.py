@@ -1,6 +1,6 @@
 import glob
 import pyrealsense2 as rs
-from errors import *
+from Errors import *
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction import image

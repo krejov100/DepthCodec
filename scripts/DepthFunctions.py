@@ -1,7 +1,11 @@
+from typing import Optional
+
+from sklearn import metrics
 from zope.interface import implementer
 from bitstream import BitStream
 from CalculateMatricies import *
 import numpy as np
+from Errors import peak_signal_to_noise
 
 
 class DepthFunction(Interface):
@@ -123,3 +127,44 @@ class F3:
     # noinspection PyMethodMayBeStatic
     def get_function_index(self):
         return 3
+
+
+def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
+    uncompressed = np.zeros(image.shape)
+    f.compress(image)
+    bits = BitStream()
+    bits = f.encode(bits)
+    f.decode(bits)
+    f.uncompress(uncompressed)
+    if metrics.mean_squared_error(image, uncompressed) == 0:
+        return float('Inf')
+    sig = peak_signal_to_noise(image, uncompressed)
+    return sig
+
+
+# noinspection
+def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
+    f0_codec: DepthFunction = F0()
+    f0_psnr = get_peak_signal_to_noise(image, f0_codec)
+    if f0_psnr > min_psnr:
+        return f0_codec
+
+    if np.amin(image) == 0:
+        return None
+
+    f1_codec: DepthFunction = F1()
+    f1_psnr = get_peak_signal_to_noise(image, f1_codec)
+    if f1_psnr > min_psnr:
+        return f1_codec
+
+    if image.shape[0] > 4:
+        f2_codec: DepthFunction = F2()
+        f2_psnr = get_peak_signal_to_noise(image, f2_codec)
+        if f2_psnr > min_psnr:
+            return f2_codec
+
+        # f3_codec: DepthFunction = F3()
+        # f3_psnr = get_peak_signal_to_noise(image, f3_codec)
+        # if f3_psnr > min_psnr:
+        #    return f3_codec
+    return None
