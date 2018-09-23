@@ -117,7 +117,7 @@ def example_should_split(node: QuadTreeNode):
 
 
 def example_leaf_data_factory(node: QuadTreeNode):
-    return ExampleMaxLeaf(node.roi.sub_im(node.image))
+    return ExampleMaxLeaf(node.roi.sub_image(node.image))
 
 
 class TestTree(TestCase):

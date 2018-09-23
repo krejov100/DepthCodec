@@ -5,7 +5,7 @@ class Rect:
         self.width = width
         self.height = height
 
-    def sub_im(self, im):
+    def sub_image(self, im):
         return im[int(self.y):int(self.y) + int(self.height), int(self.x):int(self.x) + int(self.width)]
 
     def tl(self):

@@ -14,7 +14,7 @@ class QuadTreeNode(Node):
         self.roi = roi
 
     def get_sub_image(self):
-        return self.roi.sub_im(self.image)
+        return self.roi.sub_image(self.image)
 
     def combine(self, child_leafs):
         x = child_leafs[0].ROI.x
@@ -37,7 +37,7 @@ class QuadTreeNode(Node):
 
     # TODO add check that child is drawable
     def draw(self, im, debug=False):
-        sub_im = self.roi.sub_im(im)
+        sub_im = self.roi.sub_image(im)
         if self._leaf_data is not None:
             self._leaf_data.draw(sub_im)
         if debug:
