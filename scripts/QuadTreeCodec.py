@@ -8,9 +8,10 @@ import numpy as np
 
 
 class QuadTreeCodec:
-    def __init__(self, quad_tree_size=64, min_cell_snr=70):
+    def __init__(self, quad_tree_size=64, min_cell_snr=70, debug=False):
         self.quad_tree_size = quad_tree_size
         self.min_cell_snr = min_cell_snr
+        self.debug = debug
         self.tree = None
 
     def get_codec_shape(self):
@@ -24,7 +25,7 @@ class QuadTreeCodec:
 
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
-        self.tree.draw(cell, False)
+        self.tree.draw(cell, self.debug)
 
     def encode(self, stream: BitStream):
         return stream

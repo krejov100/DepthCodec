@@ -1,5 +1,6 @@
 from PIL import Image
 from DepthFunctions import *
+from progressbar import progressbar
 
 
 class TiledCodec:
@@ -15,7 +16,7 @@ class TiledCodec:
         new_size = (self.original_size // codec_shape) * codec_shape
         # having to use pil and openCV bug #9096
         image = np.asarray(Image.fromarray(image).resize((new_size[1], new_size[0]), Image.NEAREST))
-        for y in range(0, new_size[0], codec_shape[0]):
+        for y in progressbar(range(0, new_size[0], codec_shape[0])):
             for x in range(0, new_size[1], codec_shape[1]):
                 codec = self.codec_factory.create_codec()
                 sub_image = Rect(x, y, codec_shape[0], codec_shape[1]).sub_image(image)
@@ -25,9 +26,9 @@ class TiledCodec:
     def uncompress(self) -> np.ndarray:
         codec_shape = self.codecs[0].get_codec_shape()
         new_size = (self.original_size // codec_shape) * codec_shape
-        image = np.zeros((new_size[0], new_size[1]))
+        image = np.zeros((new_size[0], new_size[1]), dtype=np.uint16)
         index = 0
-        for y in range(0, new_size[0], codec_shape[0]):
+        for y in progressbar(range(0, new_size[0], codec_shape[0])):
             for x in range(0, new_size[1], codec_shape[1]):
                 sub_image = Rect(x, y, codec_shape[0], codec_shape[1]).sub_image(image)
                 self.codecs[index].uncompress(sub_image)
