@@ -7,10 +7,10 @@ import numpy as np
 
 class CodecFactory:
     def __init__(self):
-        self.quad_size = 64
+        self.quad_size = 256
 
     def create_codec(self):
-        return QuadTreeCodec(quad_tree_size=self.quad_size, min_cell_snr=70, debug=False)
+        return QuadTreeCodec(quad_tree_size=self.quad_size, min_cell_snr=80, debug=True)
 
     def get_codec_shape(self):
         return [self.quad_size, self.quad_size]

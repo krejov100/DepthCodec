@@ -144,13 +144,19 @@ def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
 
 # noinspection
 def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
-    f0_codec: DepthFunction = F0()
-    f0_psnr = get_peak_signal_to_noise(image, f0_codec)
-    if f0_psnr > min_psnr:
-        return f0_codec
+
+    #f0_codec: DepthFunction = F0()
+    #f0_psnr = get_peak_signal_to_noise(image, f0_codec)
+    #if f0_psnr > min_psnr:
+    if np.amax(image) == 0:
+        return F0()
 
     if np.amin(image) == 0:
-        return None
+       return None
+
+    min = np.amin(image)
+    min /= 0xfff
+    min_psnr -= (min) * 20
 
     f1_codec: DepthFunction = F1()
     f1_psnr = get_peak_signal_to_noise(image, f1_codec)

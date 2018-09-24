@@ -22,7 +22,7 @@ def loadSampleFromFile(ros_file_path):
 
 files = glob.glob('C:/sample_data/*')
 for example in files:
-	depth, intrin = loadSampleFromFile(files[6])
+	depth, intrin = loadSampleFromFile(files[5])
 
 
 	tc = DepthImageCodec()

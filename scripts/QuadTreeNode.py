@@ -41,5 +41,5 @@ class QuadTreeNode(Node):
         if self._leaf_data is not None:
             self._leaf_data.draw(sub_im)
         if debug:
-            cv2.rectangle(im, self.roi.tl(), self.roi.br(), 255)
+            cv2.rectangle(im, self.roi.tl(), self.roi.br(), 0xfff)
         return sub_im
