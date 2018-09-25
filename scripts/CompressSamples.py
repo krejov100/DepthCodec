@@ -47,7 +47,9 @@ def loadSampleFromFile(ros_file_path, max_distance):
 
 	return depth_image, intrin
 
-files = glob.glob('/home/spc/Desktop/DepthCodec/sample_data_old/*')
+data_path = '/home/spc/Desktop/DepthCodec/sample_data/*'
+files = glob.glob(data_path)
+assert files.__len__(), "no test data in " + data_path
 for example in files:
 	depth, intrin = loadSampleFromFile(files[1], 20)
 	plt.figure()
