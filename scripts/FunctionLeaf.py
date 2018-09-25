@@ -19,3 +19,10 @@ class FunctionLeaf:
         bits = self._depth_function.encode(bits)
         self._depth_function.decode(bits)
         self._depth_function.uncompress(cell)
+
+    def encode(self, stream: BitStream):
+        f = self._depth_function.get_function_index()
+        stream.write(f // 2, bool);
+        stream.write(f % 2, bool)
+        self._depth_function.encode(stream)
+        return stream

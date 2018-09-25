@@ -38,5 +38,5 @@ class CompressedLeafFactory:
         fl.set_depth_function(get_best_function(node.get_sub_image(), self.min_patch_snr))
         node.set_leaf_data(fl)
 
-        self.split_counts[fl._depth_function.get_function_index()][node.roi.width] += 1
+        #self.split_counts[fl._depth_function.get_function_index()][node.roi.width] += 1
         return fl

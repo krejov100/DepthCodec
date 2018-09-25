@@ -1,7 +1,7 @@
 from typing import Optional
 
 from sklearn import metrics
-from zope.interface import implementer
+from zope.interface import Interface, implementer
 from bitstream import BitStream
 from CalculateMatricies import *
 import numpy as np
@@ -55,7 +55,7 @@ class F1:
         self.__max_val = 0
 
     def compress(self, cell: np.ndarray):
-        self.__max_val = np.amax(cell)
+        self.__max_val = np.mean(cell)
 
     # noinspection PyMethodMayBeStatic
     def uncompress(self, cell: np.ndarray):
@@ -93,16 +93,16 @@ class F2:
 
     def encode(self, stream: BitStream):
         stream.write(self.__mean, np.uint16)
-        stream.write(self.__p0, np.float)
-        stream.write(self.__p1, np.float)
-        stream.write(self.__p2, np.float)
+        stream.write(np.float16(self.__p0).tobytes())
+        stream.write(np.float16(self.__p1).tobytes())
+        stream.write(np.float16(self.__p2).tobytes())
         return stream
 
     def decode(self, stream: BitStream):
         self.__mean = stream.read(np.uint16, 1)
-        self.__p0 = stream.read(np.float, 1)
-        self.__p1 = stream.read(np.float, 1)
-        self.__p2 = stream.read(np.float, 1)
+        self.__p0 = np.frombuffer(stream.read(np.int8, 2), dtype=np.float16)
+        self.__p1 = np.frombuffer(stream.read(np.int8, 2), dtype=np.float16)
+        self.__p2 = np.frombuffer(stream.read(np.int8, 2), dtype=np.float16)
         return stream
 
     # noinspection PyMethodMayBeStatic
@@ -148,6 +148,7 @@ def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunct
     #f0_codec: DepthFunction = F0()
     #f0_psnr = get_peak_signal_to_noise(image, f0_codec)
     #if f0_psnr > min_psnr:
+
     if np.amax(image) == 0:
         return F0()
 
@@ -158,13 +159,13 @@ def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunct
     min /= 0xfff
     min_psnr -= (min) * 20
 
-    f1_codec: DepthFunction = F1()
+    f1_codec = F1()
     f1_psnr = get_peak_signal_to_noise(image, f1_codec)
     if f1_psnr > min_psnr:
         return f1_codec
 
     if image.shape[0] > 4:
-        f2_codec: DepthFunction = F2()
+        f2_codec = F2()
         f2_psnr = get_peak_signal_to_noise(image, f2_codec)
         if f2_psnr > min_psnr:
             return f2_codec

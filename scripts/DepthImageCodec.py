@@ -7,10 +7,10 @@ import numpy as np
 
 class CodecFactory:
     def __init__(self):
-        self.quad_size = 256
+        self.quad_size = 128
 
     def create_codec(self):
-        return QuadTreeCodec(quad_tree_size=self.quad_size, min_cell_snr=80, debug=True)
+        return QuadTreeCodec(quad_tree_size=self.quad_size, min_cell_snr=80, debug=False)
 
     def get_codec_shape(self):
         return [self.quad_size, self.quad_size]
@@ -27,7 +27,7 @@ class DepthImageCodec(TiledCodec):
         return super().uncompress()
 
     def encode(self, stream: BitStream):
-        super().encode(stream)
+        return super().encode(stream)
 
     def decode(self, stream: BitStream):
         super().decode(stream)

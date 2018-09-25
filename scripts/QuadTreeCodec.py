@@ -8,7 +8,7 @@ import numpy as np
 
 
 class QuadTreeCodec:
-    def __init__(self, quad_tree_size=64, min_cell_snr=70, debug=False):
+    def __init__(self, quad_tree_size, min_cell_snr, debug=False):
         self.quad_tree_size = quad_tree_size
         self.min_cell_snr = min_cell_snr
         self.debug = debug
@@ -28,7 +28,19 @@ class QuadTreeCodec:
         self.tree.draw(cell, self.debug)
 
     def encode(self, stream: BitStream):
+        self.encode_node(self.tree.root, stream)
         return stream
+
+    def encode_node(self, node, stream: BitStream):
+        is_leaf = node.is_leaf()
+        stream.write(is_leaf)
+        if is_leaf:
+            node.get_leaf_data().encode(stream)
+        else:
+            for child in node.get_children():
+                self.encode_node(child, stream)
+        return stream
+
 
     def decode(self, stream: BitStream):
         return stream
