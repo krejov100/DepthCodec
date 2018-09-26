@@ -41,6 +41,5 @@ class QuadTreeCodec:
                 self.encode_node(child, stream)
         return stream
 
-
     def decode(self, stream: BitStream):
         return stream

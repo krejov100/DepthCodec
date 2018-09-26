@@ -14,7 +14,6 @@ def decode_function_id(stream):
     return stream.read(bool) * 2 + stream.read(bool)
 
 
-
 @implementer(LeafData)
 class FunctionLeaf:
     def __init__(self):
