@@ -42,7 +42,7 @@ def loadSampleFromFile(ros_file_path, max_distance):
 	depth_data = depth.as_frame().get_data()
 	depth_image = np.asanyarray(depth_data)
 	depth_scale = profile.get_device().first_depth_sensor().get_depth_scale()
-	max_value = max_distance / depth_scale
+		max_value = max_distance / depth_scale
 	depth_image[depth_image > max_value] = max_value
 
 	return depth_image, intrin
