@@ -1,0 +1,3 @@
+[submodule "Common"]
+	path = scripts/Common
+	url = https://github.com/krejov100/Common.git
