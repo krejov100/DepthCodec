@@ -9,3 +9,7 @@ __pycache__/
 src/3rdParty/Open3D-master/
 
 sample_data/
+
+sample_data_old/
+
+*.bag

@@ -51,7 +51,7 @@ data_path = '/home/spc/Desktop/DepthCodec/sample_data/*'
 files = glob.glob(data_path)
 assert files.__len__(), "no test data in " + data_path
 for example in files:
-	depth, intrin = loadSampleFromFile(files[1], 20)
+	depth, intrin = loadSampleFromFile(example, 20)
 	plt.figure()
 	plt.imshow(depth)
 	plt.pause(0.1)
@@ -71,7 +71,10 @@ for example in files:
 
 
 	open3d_uncompressed	= open3d.Image(uncompressed)
-	open3d_pc2 = open3d.create_point_cloud_from_depth_image(open3d_uncompressed, open3d_intrin)
+	open3d_pc2 = open3d.create_point_cloud_from_depth_image(open3d_uncompressed, open3d_intrin, np.array([[1., 0., 0., -6.5],
+           [0., 1., 0., 0.],
+           [0., 0., 1., 0.],
+           [0., 0., 0., 1.]]))
 	open3d_pc1.paint_uniform_color([0.1, 0.9, 0.1])
 	open3d_pc2.paint_uniform_color([0.1, 0.1, 0.7])
 	open3d.draw_geometries([open3d_pc1, open3d_pc2])
