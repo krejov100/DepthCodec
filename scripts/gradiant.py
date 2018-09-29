@@ -6,6 +6,8 @@ import copy
 from CalculateMatricies import *
 from Tree import *
 
+
+# TODO Comment
 def make_gradiant(n, b0 ,b1, b2):
 	rslt = np.zeros((n,n))
 	for y in range(0, rslt.shape[0]):
@@ -13,14 +15,16 @@ def make_gradiant(n, b0 ,b1, b2):
 			rslt[y,x] = b0 + (b1*x) + (b2*y)
 	return rslt
 
-#def makeSplitGradiant(n, )
 
+# TODO Comment
 def ABmask(n, p1, p2):
 	rslt = np.zeros((n,n))
 	for y in range(0, rslt.shape[0]):
 		for x in range(0, rslt.shape[1]):
 			rslt[y,x] = leftOrRight(n, p1, p2)
-		
+
+
+# TODO Comment
 #  is p3 on the left of a line connecting p1 and p2
 def isPleftOfLine(p1, p2, p3):
 	m = np.ones((3,3))
@@ -28,7 +32,9 @@ def isPleftOfLine(p1, p2, p3):
 	m[1,1:3] = p2
 	m[2,1:3] = p3
 	return np.sign(np.linalg.det(m)) > 0
-	
+
+
+# TODO Comment
 def testIsPleftOfLine():
 	assert(leftOrRight([2,-1], [2,6], [4,0]) < 0)
 	assert(leftOrRight([2,-1], [2,6], [4,2]) < 0)
@@ -37,6 +43,8 @@ def testIsPleftOfLine():
 	assert(leftOrRight([2,-1], [2,6], [0,4]) > 0)
 	leftOrRight([3,4], [6,7], [8,8])
 
+
+# TODO Comment
 def getPerimeterCoord(n):
 	perimeterCord = np.empty((0,2), int)
 	index = 0
@@ -59,6 +67,8 @@ def getPerimeterCoord(n):
 
 	return perimeterCord
 
+
+# TODO Comment
 def top(n):
 	perimeterCord = np.empty((0,2), int)
 	index = 0
@@ -68,6 +78,8 @@ def top(n):
 		perimeterCord = np.append(perimeterCord, np.array([[x,-1]]), axis=0)
 	return perimeterCord
 
+
+# TODO Comment
 def right(n):
 	perimeterCord = np.empty((0,2), int)
 	index = 0
@@ -77,6 +89,8 @@ def right(n):
 		perimeterCord = np.append(perimeterCord, np.array([[n,y]]), axis=0)
 	return perimeterCord
 
+
+# TODO Comment
 def bottom(n):
 	perimeterCord = np.empty((0,2), int)
 	index = 0
@@ -86,6 +100,8 @@ def bottom(n):
 		perimeterCord = np.append(perimeterCord, np.array([[x,n]]), axis=0)
 	return perimeterCord
 
+
+# TODO Comment
 def left(n):
 	perimeterCord = np.empty((0,2), int)
 	index = 0
@@ -96,6 +112,7 @@ def left(n):
 	return perimeterCord
 
 
+# TODO Comment
 # returns an image that is masked using a line P Q, 0 if right of the line, 1 if left
 def maskImageUsingLine(n, p1, p2):
 	rslt = np.zeros((n,n))
@@ -104,12 +121,15 @@ def maskImageUsingLine(n, p1, p2):
 			rslt[y,x] = isPleftOfLine(p1, p2, [x,y])
 	return rslt
 
+# TODO Comment
 #should look like the example in paper
 # TODO replace with an assertable test
 def testMaskImageUsingLine():
 	plt.imshow(maskImageUsingLine(6, [3, -1], [1,8]))
 	plt.pause(0)
 
+
+# TODO Comment
 def appendMask(array, mask):
 	for alreadyin in array:
 		if (alreadyin == mask).all():
@@ -121,6 +141,7 @@ def appendMask(array, mask):
 	return array	
 	
 
+# TODO Comment
 # compute the LUT for masks that corrispond to a line deviding the image
 # This could be reduced to just two cases, top-bottom and top to left, which are then rotated to provide the other 4 cases
 def genMaskfromLines(n):
@@ -164,7 +185,7 @@ def genMaskfromLines(n):
 			masks = appendMask(masks, maskImageUsingLine(n, a, b))	
 	return masks
 
-
+# TODO Comment
 #TODO actualy test
 def testOuterIndexToXY():
 	coords = getPerimeterCoord(8)
@@ -173,14 +194,15 @@ def testOuterIndexToXY():
 		count += 1
 
 
+# TODO move
 masks = genMaskfromLines(8)
-
+# TODO Comment
 def masked_mean_center(im, mask):
 	im_with_nan = copy.deepcopy(im)
 	im_with_nan[mask == 0] = np.nan
 	mean = np.nanmean(im_with_nan)
 	return (mask*im) + ((1-mask)*mean)
-
+# TODO Comment
 def find_gradiant_split(im):
 	# 7x7 because there are less then 255 line masks
 	split_gradient_small = cv2.resize(im, (8, 8), 0, 0, cv2.INTER_NEAREST)
@@ -222,7 +244,7 @@ def find_gradiant_split(im):
 	ax.cla()
 	plt.close(fig)
 
-
+# TODO Comment
 def main():
 
 	fig, ax = plt.subplots()

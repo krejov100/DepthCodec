@@ -3,12 +3,14 @@ from DepthFunctions import *
 from progressbar import progressbar
 from scipy.misc import imresize
 
+# TODO Comment
 class TiledCodec:
     def __init__(self, codec_factory):
         self.codecs = []
         self.original_size = []
         self.codec_factory = codec_factory
 
+    # TODO Comment
     def compress(self, image: np.ndarray):
         self.original_size = np.asarray(image.shape)
         codec_shape = self.codec_factory.get_codec_shape()
@@ -25,6 +27,7 @@ class TiledCodec:
                 codec.compress(sub_image)
                 self.codecs.append(codec)
 
+    # TODO Comment
     def uncompress(self) -> np.ndarray:
         codec_shape = self.codecs[0].get_codec_shape()
         new_size = (self.original_size // codec_shape) * codec_shape
@@ -39,11 +42,13 @@ class TiledCodec:
         #image = np.asarray(Image.fromarray(image).resize((self.original_size[1], self.original_size[0]), Image.NEAREST))
         return image
 
+    # TODO Comment
     def encode(self, stream: BitStream):
         for codec in self.codecs:
             codec.encode(stream)
         return stream
 
+    # TODO Comment
     def decode(self, stream: BitStream):
         for codec in self.codecs:
             codec.decode(stream)

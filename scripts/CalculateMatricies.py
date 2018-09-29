@@ -4,23 +4,25 @@ from gradiant import *
 import cv2
 
 
+# TODO Comment
 def v(n):
 	"""compute u value of matrix"""
-	return ((n**2)*(n+1))/2
+	return ((n ** 2) * (n + 1)) / 2
 
-
+# TODO Comment
 def u(n):
 	"""compute v value of matrix"""
-	return ((n**2)*(n+1)**2)/4
+	return ((n ** 2) * (n + 1) ** 2) / 4
 
-
+# TODO Comment
 def t(n):
-	return ((n**2)*(n+1)*(2*n+1))/6
+	return ((n ** 2) * (n + 1) * (2 * n + 1)) / 6
 
-
+# TODO Comment
 def inverse_lh(n):
-	return np.matrix([[t(n), u(n), v(n)], [u(n), t(n), v(n)], [v(n), v(n), n**2]]).I
+	return np.matrix([[t(n), u(n), v(n)], [u(n), t(n), v(n)], [v(n), v(n), n ** 2]]).I
 
+# TODO Comment
 def rh(im):
 	vals = np.zeros(3)
 	for y in range(0, im.shape[0]):
@@ -30,35 +32,40 @@ def rh(im):
 			vals[2] += im[y, x]
 	return vals
 
+# TODO Comment
 def masked_rh(im, mask):
 	vals = np.zeros(3)
 	for y in range(0, im.shape[0]):
 		for x in range(0, im.shape[1]):
-			if mask[y,x] != 0:
+			if mask[y, x] != 0:
 				vals[0] += x * im[y, x]
 				vals[1] += y * im[y, x]
 			vals[2] += im[y, x]
 	return vals
 
+# TODO Comment
 def compute_gradiant(im):
 	n = im.shape[0]
 	return rh(im - np.mean(im)) * inverse_lh(n), np.mean(im)
 
+# TODO Comment
 def masked_compute_gradiant(im, mask):
 	n = im.shape[0]
 	print(n)
 	return masked_rh(im - np.mean(im), mask) * inverse_lh(n), np.mean(im)
 
+# TODO Comment
 def render_gradiant(n, bs):
 	return make_gradiant(n, bs[0][0, 2] + bs[0][0, 0] + bs[0][0, 1], bs[0][0, 0], bs[0][0, 1]) + bs[1]
 
+# TODO switch to testing code
 def main():
 	n = 200
 
 	noise = np.random.normal(0, 40, (n, n))
 	im = cv2.imread('bgExampleDepth.tif')
 	grad = make_gradiant(n, 400, 0.2, 0.343) + noise
-	grad = im[750:950,100:300,0]
+	grad = im[750:950, 100:300, 0]
 
 	print("rh" + str(rh(grad)))
 	bs = compute_gradiant(grad)

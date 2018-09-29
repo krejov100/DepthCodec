@@ -5,6 +5,7 @@ from TiledCodec import TiledCodec, BitStream
 import numpy as np
 
 
+# TODO Comment
 class CodecFactory:
     def __init__(self):
         self.quad_size = 128
@@ -16,6 +17,7 @@ class CodecFactory:
         return [self.quad_size, self.quad_size]
 
 
+# TODO Comment
 class DepthImageCodec(TiledCodec):
     def __init__(self):
         TiledCodec.__init__(self, CodecFactory())
@@ -33,6 +35,7 @@ class DepthImageCodec(TiledCodec):
         super().decode(stream)
 
 
+# TODO Comment
 def main():
     im = cv2.imread('bgExampleDepth.tif')[:, :, 1]
     tc = DepthImageCodec()

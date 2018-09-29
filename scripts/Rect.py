@@ -1,3 +1,4 @@
+# Rectangle class that can be used to get a subsection of an image
 class Rect:
     def __init__(self, x: int, y: int, width: int, height: int):
         self.x = x

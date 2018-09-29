@@ -4,16 +4,19 @@ from DepthFunctions import DepthFunction, function_from_id
 from Tree import LeafData
 
 
+# TODO Comment
 def encode_function_id(id, stream):
     stream.write(id // 2, bool)
     stream.write(id % 2, bool)
     return stream
 
 
+# TODO Comment
 def decode_function_id(stream):
     return stream.read(bool) * 2 + stream.read(bool)
 
 
+# TODO Comment
 @implementer(LeafData)
 class FunctionLeaf:
     def __init__(self):

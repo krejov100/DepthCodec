@@ -6,6 +6,7 @@ from zope.interface import implementer
 from Drawable import IDrawable
 
 
+# TODO Comment
 @implementer(IDrawable)
 class QuadTreeNode(Node):
     def __init__(self, image: np.ndarray, roi: Rect, parent=None):
@@ -13,9 +14,11 @@ class QuadTreeNode(Node):
         self.image = image
         self.roi = roi
 
+    # TODO Comment
     def get_sub_image(self):
         return self.roi.sub_image(self.image)
 
+    # TODO Comment
     def combine(self, child_leafs):
         x = child_leafs[0].ROI.x
         y = child_leafs[0].ROI.y
@@ -24,6 +27,7 @@ class QuadTreeNode(Node):
         self.roi = Rect(x, y, width, height)
         return self
 
+    # TODO Comment
     def split_into_children(self, leaf_data_factory):
         x = self.roi.x
         y = self.roi.y
@@ -35,6 +39,7 @@ class QuadTreeNode(Node):
                 QuadTreeNode(self.image, Rect(x, y + half_height, half_width, half_height), self),
                 QuadTreeNode(self.image, Rect(x + half_width, y + half_height, half_width, half_height), self)]
 
+    # TODO Comment
     # TODO add check that child is drawable
     def draw(self, im, debug=False):
         sub_im = self.roi.sub_image(im)

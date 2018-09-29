@@ -7,7 +7,7 @@ from bitstream import BitStream
 from DepthImageCodec import DepthImageCodec
 from Common.RosBagDepthGenerator import RosBagGenerator
 
-
+# TODO move to a folder for scripts
 data_path = 'C:/sample_data/20180923_130647.bag'
 rosbag = RosBagGenerator(data_path, 3)
 bits = BitStream()

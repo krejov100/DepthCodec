@@ -1,15 +1,14 @@
 import unittest
 from typing import Optional
-
-from copy import deepcopy
 from sklearn import metrics
-from zope.interface import Interface, implementer
+from zope.interface import implementer
 from bitstream import BitStream
 from CalculateMatricies import *
 import numpy as np
 from Errors import peak_signal_to_noise
 
 
+# TODO Comment
 class DepthFunction(Interface):
     def compress(self, cell: np.ndarray):
         pass
@@ -29,6 +28,7 @@ class DepthFunction(Interface):
         pass
 
 
+# TODO Comment
 @implementer(DepthFunction)
 class F0:
     def compress(self, cell: np.ndarray):
@@ -51,6 +51,7 @@ class F0:
         return 0
 
 
+# TODO Comment
 @implementer(DepthFunction)
 class F1:
     def __init__(self):
@@ -79,6 +80,7 @@ class F1:
         return 1
 
 
+# TODO Comment
 @implementer(DepthFunction)
 class F2(unittest.TestCase):
     def __init__(self):
@@ -115,6 +117,7 @@ class F2(unittest.TestCase):
         return 2
 
 
+# TODO Comment
 @implementer(DepthFunction)
 class F3:
     def compress(self, cell: np.ndarray):
@@ -134,6 +137,7 @@ class F3:
         return 3
 
 
+# TODO Comment
 def function_from_id(function_id):
     if function_id == 0:
         return F0()
@@ -145,6 +149,7 @@ def function_from_id(function_id):
         return F3()
 
 
+# TODO Comment
 def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
     uncompressed = np.zeros(image.shape)
     f.compress(image)
@@ -158,6 +163,7 @@ def get_peak_signal_to_noise(image: np.ndarray, f: DepthFunction):
     return sig
 
 
+# TODO Comment
 # noinspection
 def get_best_function(image: np.ndarray, min_psnr: float) -> Optional[DepthFunction]:
 

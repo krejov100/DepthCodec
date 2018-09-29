@@ -7,6 +7,7 @@ from itertools import *
 perimeter_hops = 3
 
 
+# TODO Comment
 def top_coordinates(n):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
@@ -15,6 +16,7 @@ def top_coordinates(n):
     return perimeter_cord
 
 
+# TODO Comment
 def right_coordinates(n):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
@@ -23,6 +25,7 @@ def right_coordinates(n):
     return perimeter_cord
 
 
+# TODO Comment
 def bottom_coordinates(n):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
@@ -31,6 +34,7 @@ def bottom_coordinates(n):
     return perimeter_cord
 
 
+# TODO Comment
 def left_coordinates(n):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
@@ -39,6 +43,7 @@ def left_coordinates(n):
     return perimeter_cord
 
 
+# TODO Comment
 def compute_perimeterlines(n):
     masks = []
     top = top_coordinates(n)
@@ -79,6 +84,7 @@ def compute_perimeterlines(n):
     return masks
 
 
+# TODO move to testing or scripts
 n = 64
 step = math.ceil((n+2)/perimeter_hops)
 top_ids = list(product([-1], range(-1, n, step)))
@@ -117,6 +123,7 @@ print(left_ids)
 
 masks = compute_perimeterlines(128)
 
+# TODO move to testing or scripts
 def main():
 
     fig, ax = plt.subplots()

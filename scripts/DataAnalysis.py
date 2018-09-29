@@ -3,12 +3,12 @@ from Errors import *
 from sklearn.feature_extraction import image
 from CalculateMatricies import *
 
-
+# TODO Comment
 def showCellAndDecoding(cell, decoded, min, max):
 	plt.imshow(np.hstack((cell, decoded)), vmin=min, vmax=max)
 	plt.pause(0.001)
 
-
+# TODO Comment
 def f0error(cell):
 	decoded = np.zeros(cell.shape)
 	cell_mse = mean_squared_error(cell, decoded)
@@ -16,7 +16,7 @@ def f0error(cell):
 		return(0,float('Inf'))
 	return cell_mse, peak_signal_to_noise(cell, decoded)
 
-
+# TODO Comment
 def f1error(cell):
 	decoded = np.zeros(cell.shape)
 	max = np.amax(cell)
@@ -28,7 +28,7 @@ def f1error(cell):
 	#		showCellAndDecoding(cell, decoded)
 	return cell_mse, peak_signal_to_noise(cell, decoded)
 
-
+# TODO Comment
 def f2error(cell, b2):
 	bs = compute_gradiant(cell)
 	n = cell.shape[0]
@@ -42,15 +42,15 @@ def f2error(cell, b2):
 	#	showCellAndDecoding(cell, decoded, min, max)
 	return cell_mse, peak_signal_to_noise(cell, decoded), bs
 
-
+# TODO Comment
 def f3error(cell):
 	pass
 
-
+# TODO Comment
 def f4error(cell):
 	pass
 
-
+# TODO Move to scripts folder
 files = glob.glob('./sample_data*')
 n = 8
 cell_sizes = [ 2**j for j in range(1,n+1)]

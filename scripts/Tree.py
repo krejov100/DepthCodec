@@ -1,15 +1,15 @@
-from unittest import *
-from  zope.interface import Interface
 from CalculateMatricies import *
 from Rect import Rect
 from QuadTreeNode import QuadTreeNode
 from Drawable import IDrawable
 
+# TODO Comment
 class GradiantEncoding:
     def __init__(self):
         self.plane_eq = 0
         self.value = 0
 
+    # TODO Comment
     def encode(self, im):
         n = im.shape[0]
         if n > 1:
@@ -23,7 +23,7 @@ class GradiantEncoding:
         else:
             im[:,:].fill(self.value)
 
-
+    # TODO Comment
     def should_split(self, im):
         n = im.shape[0]
         if n == 1:
@@ -38,9 +38,11 @@ class GradiantEncoding:
         return im.min() == 0
         #return False
 
+# TODO Comment
 class LeafData(Interface):
     pass
 
+# TODO Comment
 class LeafDataFactory(Interface):
     # noinspection PyMethodMayBeStatic
     def should_split(self, node: QuadTreeNode) -> bool:
@@ -50,17 +52,19 @@ class LeafDataFactory(Interface):
     def create_leaf_data(self, node: QuadTreeNode) -> LeafData:
         pass
 
-
+# TODO Comment
 class Tree:
     def __init__(self, root):
         self.root = root
 
+    # TODO Comment
     def breadth_wise_get_node(self):
         children = [self.root]
         for child in children:
             children.append(child.get_children())
             yield child
 
+    # TODO Comment
     def get_leafs(self):
         to_check = [self.root]
         leafs = []
@@ -72,6 +76,7 @@ class Tree:
                 to_check = to_check + current.get_children()
         return leafs
 
+    # TODO Comment
     def top_down(self, leaf_data_factory):
         to_grow = [self.root]
         while len(to_grow):
@@ -85,6 +90,7 @@ class Tree:
     #def encode(self, image):
     #    self.top_down(image)
 
+    # TODO Comment
     def draw(self, im, debug=False):
         to_visit = [self.root]
         while to_visit:
@@ -100,7 +106,7 @@ class Tree:
 
 
 # Example of a Leaf_Data type that can be used to store data in the leaf nodes of the tree
-
+# TODO Comment
 class ExampleMaxLeaf(IDrawable):
     def __init__(self, im):
         self.__max = np.amax(im)
@@ -108,18 +114,18 @@ class ExampleMaxLeaf(IDrawable):
     def draw(self, im, debug=False):
         im.fill(self.__max)
 
-
+# TODO Comment
 def example_should_split(node: QuadTreeNode):
         # reached bottom
         if node.roi.width == 1 or node.roi.height == 1:
             return False
         return True
 
-
+# TODO Comment
 def example_leaf_data_factory(node: QuadTreeNode):
     return ExampleMaxLeaf(node.roi.sub_image(node.image))
 
-
+# TODO Comment
 class TestTree(TestCase):
     # TODO
     def test_top_down(self):

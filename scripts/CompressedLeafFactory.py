@@ -7,7 +7,7 @@ from FunctionLeaf import FunctionLeaf
 from QuadTreeNode import QuadTreeNode
 from Tree import LeafDataFactory
 
-
+# TODO Comment
 @implementer(LeafDataFactory)
 class CompressedLeafFactory:
     def __init__(self, min_cell_snr:float):
@@ -20,6 +20,7 @@ class CompressedLeafFactory:
             for po2 in po2s:
                 self.split_counts[i][po2] = 0
 
+    # TODO Comment
     # noinspection PyMethodMayBeStatic
     def should_split(self, node: QuadTreeNode):
         # reached bottom
@@ -30,6 +31,7 @@ class CompressedLeafFactory:
         best_function = get_best_function(sub_image, self.min_patch_snr)
         return best_function is None
 
+    # TODO Comment
     # noinspection PyMethodMayBeStatic
     def create_leaf_data(self, node: QuadTreeNode) -> FunctionLeaf:
         # this currently means the function sets are calculated twice,
