@@ -8,7 +8,7 @@ from Tree import *
 
 
 # TODO Comment
-def make_gradiant(n, b0 ,b1, b2):
+def make_gradient(n, b0 ,b1, b2):
 	rslt = np.zeros((n,n))
 	for y in range(0, rslt.shape[0]):
 		for x in range(0, rslt.shape[1]):
@@ -218,13 +218,13 @@ def find_gradiant_split(im):
 		index += 1
 		m = mask
 		# compute gradient for mask
-		gradient = masked_compute_gradiant(masked_mean_center(split_gradient_small, m), m)
-		rendered_gradient = render_gradiant(8, gradient)
+		gradient = masked_compute_gradient(masked_mean_center(split_gradient_small, m), m)
+		rendered_gradient = render_gradient(8, gradient)
 
 		# compute gradient for inverse mask
 		m = 1-mask
-		gradient = masked_compute_gradiant(masked_mean_center(split_gradient_small, m), m)
-		rendered_gradient2 = render_gradiant(8, gradient)
+		gradient = masked_compute_gradient(masked_mean_center(split_gradient_small, m), m)
+		rendered_gradient2 = render_gradient(8, gradient)
 
 		rslt = (rendered_gradient2 * m) + (rendered_gradient * (1-m))
 

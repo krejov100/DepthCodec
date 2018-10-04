@@ -34,7 +34,7 @@ def f2error(cell, b2):
 	n = cell.shape[0]
 	max = np.amax(cell)
 	min = np.amin(cell)
-	decoded = render_gradiant(n, bs)
+	decoded = render_gradient(n, bs)
 	cell_mse = mean_squared_error(cell, decoded)
 	if (cell_mse == 0):
 		return 0, float('Inf'), bs

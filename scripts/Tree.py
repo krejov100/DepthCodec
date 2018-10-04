@@ -19,7 +19,7 @@ class GradiantEncoding:
     def decode(self, im):
         n = im.shape[0]
         if n > 1:
-            im[:,:] = render_gradiant(n, self.plane_eq)
+            im[:,:] = render_gradient(n, self.plane_eq)
         else:
             im[:,:].fill(self.value)
 
@@ -31,7 +31,7 @@ class GradiantEncoding:
         should_split = False
         plane_eq = compute_gradiant(im)
 
-        rslt_im = render_gradiant(n,plane_eq)
+        rslt_im = render_gradient(n, plane_eq)
         v = psnr(im, rslt_im)
         if v < 80:
             return True

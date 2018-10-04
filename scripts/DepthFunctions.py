@@ -96,7 +96,7 @@ class F2(unittest.TestCase):
         self._p2 = p[0, 2]
 
     def uncompress(self, cell: np.ndarray):
-        cell[:, :] = render_gradiant(cell.shape[0], (np.asanyarray([[self._p0, self._p1, self._p2]]), self._mean))
+        cell[:, :] = render_gradient(cell.shape[0], (np.asanyarray([[self._p0, self._p1, self._p2]]), self._mean))
 
     def encode(self, stream: BitStream):
         stream.write(self.__mean, np.uint16)
