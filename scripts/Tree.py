@@ -2,6 +2,8 @@ from CalculateMatricies import *
 from Rect import Rect
 from QuadTreeNode import QuadTreeNode
 from Drawable import IDrawable
+from zope.interface import Interface
+from unittest import *
 
 # TODO Comment
 class GradiantEncoding:

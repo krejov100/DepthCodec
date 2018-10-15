@@ -39,6 +39,7 @@ class TiledCodec:
                 self.codecs[index].uncompress(sub_image)
                 index += 1
         image = cv2.resize(image, tuple([self.original_size[1], self.original_size[0]]), interpolation=cv2.INTER_NEAREST)
+        #image = cv2.rectangle(image, (x,y), tuple(np.asarray([x,y])+codec_shape), np.max(image))
         #image = np.asarray(Image.fromarray(image).resize((self.original_size[1], self.original_size[0]), Image.NEAREST))
         return image
 

@@ -90,7 +90,7 @@ class F2(unittest.TestCase):
         self._p2 = 0
 
     def compress(self, cell: np.ndarray):
-        (p, self.__mean) = compute_gradiant(cell)
+        (p, self.__mean) = compute_gradient(cell)
         self._p0 = p[0, 0]
         self._p1 = p[0, 1]
         self._p2 = p[0, 2]
