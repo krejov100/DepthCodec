@@ -117,9 +117,14 @@ class F2(unittest.TestCase):
         return 2
 
 
-# TODO Comment
+# implimentation of the function 3 from platlett based compression.
+# the function is based on a line divide the quad into two sub regions.
+# Each sub region is represented using a single depth value.
 @implementer(DepthFunction)
 class F3:
+    def __init__(self):
+        self.lineMasks=
+
     def compress(self, cell: np.ndarray):
         pass
 

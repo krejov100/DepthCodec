@@ -7,8 +7,8 @@ from itertools import *
 perimeter_hops = 3
 
 
-# TODO Comment
-def top_coordinates(n):
+# coordinates along the top of the image
+def top_coordinates(n, perimeter_hops):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
     for x in range(0, n, step):
@@ -16,8 +16,8 @@ def top_coordinates(n):
     return perimeter_cord
 
 
-# TODO Comment
-def right_coordinates(n):
+# coordinates down the right side of the image
+def right_coordinates(n, perimeter_hops):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
     for y in range(0, n, step):
@@ -25,8 +25,8 @@ def right_coordinates(n):
     return perimeter_cord
 
 
-# TODO Comment
-def bottom_coordinates(n):
+# coordinates along the bottom of the image
+def bottom_coordinates(n, perimeter_hops):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
     for x in range(n, 0, -step):
@@ -34,8 +34,8 @@ def bottom_coordinates(n):
     return perimeter_cord
 
 
-# TODO Comment
-def left_coordinates(n):
+# coordinates up the right side of the image
+def left_coordinates(n, perimeter_hops):
     step = math.ceil(n/perimeter_hops)
     perimeter_cord = np.empty((0, 2), int)
     for y in range(n, 0, -step):
@@ -43,13 +43,13 @@ def left_coordinates(n):
     return perimeter_cord
 
 
-# TODO Comment
-def compute_perimeterlines(n):
+# creates the permutations of lines based on
+def compute_perimeterlines(n, perimeter_hops):
     masks = []
-    top = top_coordinates(n)
-    right = right_coordinates(n)
-    bottom = bottom_coordinates(n)
-    left = left_coordinates(n)
+    top = top_coordinates(n, perimeter_hops)
+    right = right_coordinates(n, perimeter_hops)
+    bottom = bottom_coordinates(n, perimeter_hops)
+    left = left_coordinates(n, perimeter_hops)
 
     #from top-right
     for a in top:
